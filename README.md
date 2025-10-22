@@ -8,6 +8,7 @@ Thoth is a Chrome extension that lets you highlight text or images on any webpag
 
 ## 🎯 Features
 
+- **Quick Actions**: Create issues from the popup for sites that block right-click (like Excel Online)
 - **Smart Selection**: Highlight text or right-click images on any webpage
 - **Combined Content**: Capture both text and images together in a single issue
 - **AI-Powered**: Uses OpenAI GPT-4o-mini to generate structured issue titles and descriptions
@@ -16,6 +17,7 @@ Thoth is a Chrome extension that lets you highlight text or images on any webpag
 - **Multi-Repository Support**: Works with both personal and organization GitHub repositories
 - **Source Filtering**: Select which users/organizations to include for cleaner repository lists
 - **Context Menu Integration**: Quick access via right-click context menu
+- **Collapsible Settings**: API keys section auto-collapses when configured
 - **Secure Storage**: API keys stored securely in Chrome's sync storage
 - **Clean UI**: Minimal interface with Egyptian-themed branding (cream, teal, orange, gold)
 
@@ -74,7 +76,20 @@ Before installing Thoth, you'll need:
 
 ## 📖 Usage
 
-### Creating an Issue from Selected Text
+### Quick Actions (For Sites That Block Right-Click)
+
+Some websites like Excel Online disable right-click. For these sites, use the popup button:
+
+1. **Highlight text** on the webpage
+2. **Click the Thoth extension icon** in your toolbar
+3. Click **"Create Issue with Highlighted Text"**
+4. Select a repository from the dropdown
+5. Click **"Create Issue"**
+6. Thoth will create the issue and open it in a new tab
+
+**Tip**: This method works on any website, even those that block the context menu!
+
+### Creating an Issue from Selected Text (Context Menu)
 
 1. **Highlight text** on any webpage that you want to capture
 2. **Right-click** the selected text

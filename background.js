@@ -23,6 +23,16 @@ chrome.storage.onChanged.addListener((changes, area) => {
   }
 });
 
+// Handle messages from popup
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  if (message.action === 'createIssueFromPopup') {
+    handlePopupIssueCreation(message.data)
+      .then(result => sendResponse(result))
+      .catch(error => sendResponse({ success: false, error: error.message }));
+    return true; // Keep channel open for async response
+  }
+});
+
 // Fetch image and upload to GitHub repository
 async function uploadImageToGitHub(imageUrl, repoFullName, githubToken) {
   try {
@@ -610,5 +620,37 @@ async function hidePageLoader(tabId) {
     });
   } catch (error) {
     console.log('Could not hide page loader:', error);
+  }
+}
+
+// Handle issue creation from popup
+async function handlePopupIssueCreation(data) {
+  const { text, repoFullName, pageUrl, openaiKey, githubKey } = data;
+
+  try {
+    console.log('Creating issue from popup for repo:', repoFullName);
+
+    // Fetch issue template
+    const template = await fetchIssueTemplate(repoFullName, githubKey);
+
+    // Generate issue content with OpenAI
+    const content = { text: text, image: '' };
+    const { title, body } = await generateIssueContent(content, 'text', openaiKey, pageUrl, template);
+
+    // Create GitHub issue
+    const issueUrl = await createGitHubIssue(repoFullName, title, body, githubKey);
+
+    console.log('Issue created from popup:', issueUrl);
+
+    return {
+      success: true,
+      issueUrl: issueUrl
+    };
+  } catch (error) {
+    console.error('Error creating issue from popup:', error);
+    return {
+      success: false,
+      error: error.message || 'Failed to create issue'
+    };
   }
 }

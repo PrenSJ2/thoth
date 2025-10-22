@@ -12,12 +12,14 @@
     }
 
     body {
-      width: 400px;
+      width: 420px;
+      max-height: 600px;
       padding: 20px;
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
       background: #faf8f0;
       color: #1a1a2e;
       font-size: 14px;
+      overflow-y: auto;
     }
 
     h1 {
@@ -273,6 +275,73 @@
       background: #ffe8dc;
       color: #a82810;
     }
+
+    /* Accordion styles */
+    .accordion-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+      padding: 8px 0;
+      user-select: none;
+    }
+
+    .accordion-header:hover .section-title {
+      color: #16a085;
+    }
+
+    .accordion-toggle {
+      font-size: 18px;
+      transition: transform 0.3s;
+      color: #16a085;
+    }
+
+    .accordion-toggle.collapsed {
+      transform: rotate(-90deg);
+    }
+
+    .accordion-content {
+      max-height: 1000px;
+      overflow: hidden;
+      transition: max-height 0.3s ease-out, opacity 0.3s ease-out;
+      opacity: 1;
+    }
+
+    .accordion-content.collapsed {
+      max-height: 0;
+      opacity: 0;
+    }
+
+    /* Quick action button */
+    button.action {
+      background: #d45f13;
+      color: #ffffff;
+      margin-bottom: 12px;
+    }
+
+    button.action:hover {
+      background: #ba5010;
+    }
+
+    button.action:active {
+      background: #9f440d;
+    }
+
+    .repo-select-container {
+      margin-top: 12px;
+      display: none;
+    }
+
+    #quick-repo-select {
+      margin-bottom: 12px;
+    }
+
+    .keys-status {
+      font-size: 11px;
+      color: #0e5a2f;
+      font-weight: 600;
+      margin-left: 8px;
+    }
   </style>
 </head>
 <body>
@@ -282,28 +351,49 @@
   </h1>
   <div class="subtitle">The AI scribe that records what matters</div>
 
+  <!-- Quick Actions Section -->
+  <div class="section">
+    <div class="section-title">Quick Actions</div>
+    <button id="create-issue-btn" class="action">Create Issue with Highlighted Text</button>
+    <div id="create-issue-status" class="status-message"></div>
+
+    <div id="repo-select-container" class="repo-select-container">
+      <label for="quick-repo-select">Select Repository:</label>
+      <select id="quick-repo-select"></select>
+      <button id="confirm-create-btn">Create Issue</button>
+    </div>
+  </div>
+
   <!-- API Keys Section -->
   <div class="section">
-    <div class="section-title">API Keys</div>
-
-    <div class="input-group">
-      <label for="openai-key">OpenAI API Key</label>
-      <div class="key-input-row">
-        <input type="password" id="openai-key" placeholder="sk-...">
-        <button id="save-openai-btn">Save</button>
+    <div class="accordion-header" id="api-keys-header">
+      <div>
+        <span class="section-title">API Keys</span>
+        <span class="keys-status" id="keys-status"></span>
       </div>
-      <div class="help-text">Used for AI-powered issue generation (gpt-4o-mini) | <a href="https://platform.openai.com/api-keys" target="_blank">Get API Key</a></div>
-      <div id="openai-status" class="status-message"></div>
+      <span class="accordion-toggle" id="api-keys-toggle">▼</span>
     </div>
 
-    <div class="input-group">
-      <label for="github-key">GitHub Personal Access Token</label>
-      <div class="key-input-row">
-        <input type="password" id="github-key" placeholder="ghp_... or github_pat_...">
-        <button id="save-github-btn">Save</button>
+    <div class="accordion-content" id="api-keys-content">
+      <div class="input-group">
+        <label for="openai-key">OpenAI API Key</label>
+        <div class="key-input-row">
+          <input type="password" id="openai-key" placeholder="sk-...">
+          <button id="save-openai-btn">Save</button>
+        </div>
+        <div class="help-text">Used for AI-powered issue generation (gpt-4o-mini) | <a href="https://platform.openai.com/api-keys" target="_blank">Get API Key</a></div>
+        <div id="openai-status" class="status-message"></div>
       </div>
-      <div class="help-text">Requires scopes: repo, read:org | <a href="https://github.com/settings/tokens/new?description=Thoth%20Chrome%20Extension&scopes=repo,read:org" target="_blank">Generate Token</a></div>
-      <div id="github-status" class="status-message"></div>
+
+      <div class="input-group">
+        <label for="github-key">GitHub Personal Access Token</label>
+        <div class="key-input-row">
+          <input type="password" id="github-key" placeholder="ghp_... or github_pat_...">
+          <button id="save-github-btn">Save</button>
+        </div>
+        <div class="help-text">Requires scopes: repo, read:org | <a href="https://github.com/settings/tokens/new?description=Thoth%20Chrome%20Extension&scopes=repo,read:org" target="_blank">Generate Token</a></div>
+        <div id="github-status" class="status-message"></div>
+      </div>
     </div>
   </div>
 

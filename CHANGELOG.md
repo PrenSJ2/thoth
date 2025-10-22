@@ -8,12 +8,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
-- GitHub Actions workflow for automated releases
+- GitHub Actions workflow for automated releases on push to main
 - Makefile command for creating releases
 - CHANGELOG.md for tracking changes
+- Quick action button in popup to create issues with highlighted text (for sites that block right-click)
+- Collapsible/accordion API keys section that auto-collapses when keys are configured
+- Status indicator for API keys configuration (✓ Configured, ⚠ Incomplete, ✗ Not configured)
 
 ### Fixed
 - Service worker crash when context menu is clicked after worker restart
+
+### Changed
+- Release workflow now triggers on every push to main branch (automatic CD)
+- API keys section now collapses by default when both keys are configured
 
 ## [1.0.0] - 2025-10-22
 

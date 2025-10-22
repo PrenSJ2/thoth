@@ -8,12 +8,26 @@ const saveOpenaiBtn = document.getElementById('save-openai-btn');
 const saveGithubBtn = document.getElementById('save-github-btn');
 const openaiStatus = document.getElementById('openai-status');
 const githubStatus = document.getElementById('github-status');
+const keysStatus = document.getElementById('keys-status');
+
+const apiKeysHeader = document.getElementById('api-keys-header');
+const apiKeysToggle = document.getElementById('api-keys-toggle');
+const apiKeysContent = document.getElementById('api-keys-content');
+
+const createIssueBtn = document.getElementById('create-issue-btn');
+const createIssueStatus = document.getElementById('create-issue-status');
+const repoSelectContainer = document.getElementById('repo-select-container');
+const quickRepoSelect = document.getElementById('quick-repo-select');
+const confirmCreateBtn = document.getElementById('confirm-create-btn');
 
 const loadSourcesBtn = document.getElementById('load-sources-btn');
 const loadSourcesStatus = document.getElementById('load-sources-status');
 const sourcesContainer = document.getElementById('sources-container');
 const sourcesList = document.getElementById('sources-list');
 const repoCount = document.getElementById('repo-count');
+
+let currentSelectedText = '';
+let currentTabId = null;
 
 // Load saved data on popup open
 document.addEventListener('DOMContentLoaded', async () => {
@@ -31,12 +45,27 @@ document.addEventListener('DOMContentLoaded', async () => {
     githubKeyInput.dataset.original = syncData.githubKey;
   }
 
+  // Update keys status and auto-collapse if both keys exist
+  updateKeysStatus(syncData.openaiKey, syncData.githubKey);
+  if (syncData.openaiKey && syncData.githubKey) {
+    collapseApiKeys();
+  }
+
   // Load sources if they exist
   if (localData.sources && localData.sources.length > 0) {
     populateSourcesList(localData.sources, localData.selectedSources || []);
     sourcesContainer.style.display = 'block';
     updateRepoCount(localData.reposList);
   }
+
+  // Populate repo dropdown if repos exist
+  if (localData.reposList && localData.reposList.length > 0) {
+    populateRepoDropdown(localData.reposList);
+  }
+
+  // Get current tab for quick actions
+  const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+  currentTabId = tab.id;
 });
 
 // Handle input focus to allow editing masked keys
@@ -66,56 +95,6 @@ githubKeyInput.addEventListener('blur', () => {
     githubKeyInput.dataset.original = githubKeyInput.value;
   }
   githubKeyInput.type = 'password';
-});
-
-// Save OpenAI API key
-saveOpenaiBtn.addEventListener('click', async () => {
-  const openaiKey = openaiKeyInput.dataset.original || openaiKeyInput.value.trim();
-
-  if (!openaiKey) {
-    showStatus(openaiStatus, 'Please enter an OpenAI API key', 'error');
-    return;
-  }
-
-  try {
-    await chrome.storage.sync.set({ openaiKey });
-
-    // Update dataset
-    openaiKeyInput.dataset.original = openaiKey;
-
-    // Mask display
-    openaiKeyInput.value = maskKey(openaiKey);
-    openaiKeyInput.type = 'password';
-
-    showStatus(openaiStatus, 'OpenAI key saved', 'success');
-  } catch (error) {
-    showStatus(openaiStatus, 'Failed to save key', 'error');
-  }
-});
-
-// Save GitHub API key
-saveGithubBtn.addEventListener('click', async () => {
-  const githubKey = githubKeyInput.dataset.original || githubKeyInput.value.trim();
-
-  if (!githubKey) {
-    showStatus(githubStatus, 'Please enter a GitHub token', 'error');
-    return;
-  }
-
-  try {
-    await chrome.storage.sync.set({ githubKey });
-
-    // Update dataset
-    githubKeyInput.dataset.original = githubKey;
-
-    // Mask display
-    githubKeyInput.value = maskKey(githubKey);
-    githubKeyInput.type = 'password';
-
-    showStatus(githubStatus, 'GitHub token saved', 'success');
-  } catch (error) {
-    showStatus(githubStatus, 'Failed to save token', 'error');
-  }
 });
 
 // Load organizations and users
@@ -218,6 +197,12 @@ async function fetchAllSources(githubToken) {
   return sources;
 }
 
+// Update repo count and dropdown when repos change
+function onReposUpdated(repos) {
+  updateRepoCount(repos);
+  populateRepoDropdown(repos);
+}
+
 // Fetch repositories from selected sources
 async function fetchRepositoriesFromSources(githubToken, selectedSources) {
   const headers = {
@@ -276,8 +261,8 @@ async function fetchRepositoriesFromSources(githubToken, selectedSources) {
   // Save repos to local storage
   await chrome.storage.local.set({ reposList: sortedRepos });
 
-  // Update repo count
-  updateRepoCount(sortedRepos);
+  // Update repo count and dropdown
+  onReposUpdated(sortedRepos);
 
   return sortedRepos;
 }
@@ -339,7 +324,7 @@ async function handleSourceToggle(source, isChecked) {
   } else if (selectedSources.length === 0) {
     // Clear repos if no sources selected
     await chrome.storage.local.set({ reposList: [] });
-    updateRepoCount([]);
+    onReposUpdated([]);
   }
 }
 
@@ -374,3 +359,197 @@ function maskKey(key) {
 
   return `${start}${masked}${end}`;
 }
+
+// Update keys status indicator
+function updateKeysStatus(openaiKey, githubKey) {
+  if (openaiKey && githubKey) {
+    keysStatus.textContent = '✓ Configured';
+    keysStatus.style.color = '#0e5a2f';
+  } else if (openaiKey || githubKey) {
+    keysStatus.textContent = '⚠ Incomplete';
+    keysStatus.style.color = '#d45f13';
+  } else {
+    keysStatus.textContent = '✗ Not configured';
+    keysStatus.style.color = '#a82810';
+  }
+}
+
+// Accordion toggle functionality
+apiKeysHeader.addEventListener('click', () => {
+  const isCollapsed = apiKeysContent.classList.contains('collapsed');
+  if (isCollapsed) {
+    expandApiKeys();
+  } else {
+    collapseApiKeys();
+  }
+});
+
+function collapseApiKeys() {
+  apiKeysContent.classList.add('collapsed');
+  apiKeysToggle.classList.add('collapsed');
+}
+
+function expandApiKeys() {
+  apiKeysContent.classList.remove('collapsed');
+  apiKeysToggle.classList.remove('collapsed');
+}
+
+// Update keys status after saving
+saveOpenaiBtn.addEventListener('click', async () => {
+  const openaiKey = openaiKeyInput.dataset.original || openaiKeyInput.value.trim();
+
+  if (!openaiKey) {
+    showStatus(openaiStatus, 'Please enter an OpenAI API key', 'error');
+    return;
+  }
+
+  try {
+    await chrome.storage.sync.set({ openaiKey });
+    openaiKeyInput.dataset.original = openaiKey;
+    openaiKeyInput.value = maskKey(openaiKey);
+    openaiKeyInput.type = 'password';
+    showStatus(openaiStatus, 'OpenAI key saved', 'success');
+
+    // Update status
+    const data = await chrome.storage.sync.get(['githubKey']);
+    updateKeysStatus(openaiKey, data.githubKey);
+  } catch (error) {
+    showStatus(openaiStatus, 'Failed to save key', 'error');
+  }
+});
+
+saveGithubBtn.addEventListener('click', async () => {
+  const githubKey = githubKeyInput.dataset.original || githubKeyInput.value.trim();
+
+  if (!githubKey) {
+    showStatus(githubStatus, 'Please enter a GitHub token', 'error');
+    return;
+  }
+
+  try {
+    await chrome.storage.sync.set({ githubKey });
+    githubKeyInput.dataset.original = githubKey;
+    githubKeyInput.value = maskKey(githubKey);
+    githubKeyInput.type = 'password';
+    showStatus(githubStatus, 'GitHub token saved', 'success');
+
+    // Update status
+    const data = await chrome.storage.sync.get(['openaiKey']);
+    updateKeysStatus(data.openaiKey, githubKey);
+  } catch (error) {
+    showStatus(githubStatus, 'Failed to save token', 'error');
+  }
+});
+
+// Populate repository dropdown
+function populateRepoDropdown(repos) {
+  quickRepoSelect.innerHTML = '';
+
+  if (!repos || repos.length === 0) {
+    const option = document.createElement('option');
+    option.textContent = 'No repositories available';
+    option.disabled = true;
+    quickRepoSelect.appendChild(option);
+    return;
+  }
+
+  repos.forEach(repo => {
+    const option = document.createElement('option');
+    option.value = repo.full_name;
+    const prefix = repo.owner.type === 'Organization' ? '[Org]' : '[User]';
+    option.textContent = `${prefix} ${repo.full_name}`;
+    quickRepoSelect.appendChild(option);
+  });
+}
+
+// Create issue button handler
+createIssueBtn.addEventListener('click', async () => {
+  // Check if keys are configured
+  const syncData = await chrome.storage.sync.get(['openaiKey', 'githubKey']);
+  if (!syncData.openaiKey || !syncData.githubKey) {
+    showStatus(createIssueStatus, 'Please configure your API keys first', 'error');
+    expandApiKeys();
+    return;
+  }
+
+  // Check if repos are loaded
+  const localData = await chrome.storage.local.get(['reposList']);
+  if (!localData.reposList || localData.reposList.length === 0) {
+    showStatus(createIssueStatus, 'Please load repositories first', 'error');
+    return;
+  }
+
+  // Get selected text from current tab
+  try {
+    const [result] = await chrome.scripting.executeScript({
+      target: { tabId: currentTabId },
+      func: () => window.getSelection().toString()
+    });
+
+    currentSelectedText = result.result ? result.result.trim() : '';
+
+    if (!currentSelectedText) {
+      showStatus(createIssueStatus, 'No text selected. Please highlight text on the page.', 'error');
+      return;
+    }
+
+    // Show repo selector
+    repoSelectContainer.style.display = 'block';
+    showStatus(createIssueStatus, `Text captured (${currentSelectedText.length} chars). Select a repository.`, 'info');
+  } catch (error) {
+    console.error('Error getting selection:', error);
+    showStatus(createIssueStatus, 'Could not get selected text. Try highlighting text first.', 'error');
+  }
+});
+
+// Confirm create issue
+confirmCreateBtn.addEventListener('click', async () => {
+  if (!currentSelectedText) {
+    showStatus(createIssueStatus, 'No text selected', 'error');
+    return;
+  }
+
+  const selectedRepo = quickRepoSelect.value;
+  if (!selectedRepo) {
+    showStatus(createIssueStatus, 'Please select a repository', 'error');
+    return;
+  }
+
+  confirmCreateBtn.disabled = true;
+  confirmCreateBtn.textContent = 'Creating...';
+  showStatus(createIssueStatus, 'Creating issue...', 'info');
+
+  try {
+    const syncData = await chrome.storage.sync.get(['openaiKey', 'githubKey']);
+    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+
+    // Send message to background to create issue
+    const response = await chrome.runtime.sendMessage({
+      action: 'createIssueFromPopup',
+      data: {
+        text: currentSelectedText,
+        repoFullName: selectedRepo,
+        pageUrl: tab.url,
+        openaiKey: syncData.openaiKey,
+        githubKey: syncData.githubKey
+      }
+    });
+
+    if (response.success) {
+      showStatus(createIssueStatus, 'Issue created successfully!', 'success');
+      repoSelectContainer.style.display = 'none';
+      currentSelectedText = '';
+
+      // Open the issue
+      chrome.tabs.create({ url: response.issueUrl });
+    } else {
+      showStatus(createIssueStatus, `Error: ${response.error}`, 'error');
+    }
+  } catch (error) {
+    console.error('Error creating issue:', error);
+    showStatus(createIssueStatus, `Error: ${error.message}`, 'error');
+  } finally {
+    confirmCreateBtn.disabled = false;
+    confirmCreateBtn.textContent = 'Create Issue';
+  }
+});
