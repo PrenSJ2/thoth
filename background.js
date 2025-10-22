@@ -154,8 +154,14 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
     return;
   }
 
+  // Reload repos from storage to handle service worker restarts
+  const localData = await chrome.storage.local.get(['reposList']);
+  const repos = localData.reposList || [];
+
+  console.log('Loaded repos from storage:', repos.length);
+
   const repoIndex = parseInt(info.menuItemId.split('-')[1]);
-  const selectedRepo = cachedRepos[repoIndex];
+  const selectedRepo = repos[repoIndex];
 
   console.log('Selected repo index:', repoIndex, 'Repo:', selectedRepo);
 
