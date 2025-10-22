@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Thoth Settings</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      width: 400px;
+      padding: 20px;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      background: #faf8f0;
+      color: #1a1a2e;
+      font-size: 14px;
+    }
+
+    h1 {
+      font-size: 24px;
+      font-weight: 300;
+      margin-bottom: 8px;
+      color: #d45f13;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .subtitle {
+      font-size: 12px;
+      color: #5a5346;
+      margin-bottom: 20px;
+      font-style: italic;
+    }
+
+    .section {
+      margin-bottom: 24px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid #d9d0bc;
+    }
+
+    .section:last-child {
+      border-bottom: none;
+    }
+
+    .section-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: #d45f13;
+      margin-bottom: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    label {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      margin-bottom: 6px;
+      color: #2d2d3d;
+    }
+
+    input[type="password"],
+    input[type="text"],
+    select {
+      width: 100%;
+      padding: 10px;
+      border: 2px solid #d9d0bc;
+      border-radius: 4px;
+      font-size: 13px;
+      margin-bottom: 12px;
+      font-family: 'Courier New', monospace;
+      transition: border-color 0.2s;
+      background: #ffffff;
+      color: #1a1a2e;
+    }
+
+    input[type="password"]:focus,
+    input[type="text"]:focus,
+    select:focus {
+      outline: none;
+      border-color: #16a085;
+    }
+
+    button {
+      width: 100%;
+      padding: 10px 16px;
+      background: #16a085;
+      color: #ffffff;
+      border: none;
+      border-radius: 4px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    button:hover {
+      background: #138871;
+    }
+
+    button:active {
+      background: #106f5d;
+    }
+
+    button:disabled {
+      background: #d4cec0;
+      cursor: not-allowed;
+      color: #7a7467;
+    }
+
+    button.secondary {
+      background: #d4a03a;
+      color: #1a1a2e;
+      margin-top: 8px;
+    }
+
+    button.secondary:hover {
+      background: #ba8c2f;
+    }
+
+    button.secondary:active {
+      background: #9f7825;
+    }
+
+    .status-message {
+      padding: 10px;
+      border-radius: 4px;
+      font-size: 12px;
+      margin-top: 12px;
+      display: none;
+      font-weight: 500;
+    }
+
+    .status-message.success {
+      background: #d4f1e4;
+      color: #0e5a2f;
+      border: 2px solid #16a085;
+    }
+
+    .status-message.error {
+      background: #ffe8dc;
+      color: #a82810;
+      border: 2px solid #d45f13;
+    }
+
+    .status-message.info {
+      background: #d9f0f7;
+      color: #0d4f5e;
+      border: 2px solid #16a085;
+    }
+
+    .repo-count {
+      font-size: 11px;
+      color: #5a5346;
+      margin-top: -8px;
+      margin-bottom: 8px;
+      font-style: italic;
+      font-weight: 500;
+    }
+
+    select option {
+      padding: 8px;
+    }
+
+    .input-group {
+      margin-bottom: 16px;
+    }
+
+    .help-text {
+      font-size: 11px;
+      color: #4a4338;
+      margin-top: 8px;
+      margin-bottom: 20px;
+      line-height: 1.4;
+      font-weight: 500;
+    }
+
+    .help-text a {
+      color: #138871;
+      text-decoration: none;
+      font-weight: 600;
+    }
+
+    .help-text a:hover {
+      color: #d45f13;
+      text-decoration: underline;
+    }
+
+    .icon {
+      width: 20px;
+      height: 20px;
+      display: inline-block;
+    }
+
+    .key-input-row {
+      display: flex;
+      gap: 8px;
+      align-items: flex-start;
+    }
+
+    .key-input-row input {
+      flex: 1;
+      margin-bottom: 0;
+    }
+
+    .key-input-row button {
+      width: auto;
+      padding: 10px 20px;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    .source-list {
+      max-height: 300px;
+      overflow-y: auto;
+      border: 2px solid #d9d0bc;
+      border-radius: 4px;
+      padding: 12px;
+      background: #ffffff;
+      margin-bottom: 12px;
+    }
+
+    .source-item {
+      display: flex;
+      align-items: center;
+      padding: 8px;
+      margin-bottom: 4px;
+      border-radius: 4px;
+      transition: background 0.2s;
+    }
+
+    .source-item:hover {
+      background: #faf8f0;
+    }
+
+    .source-item input[type="checkbox"] {
+      width: auto;
+      margin-right: 10px;
+      margin-bottom: 0;
+      cursor: pointer;
+    }
+
+    .source-item label {
+      margin: 0;
+      cursor: pointer;
+      flex: 1;
+      font-weight: 500;
+      font-size: 13px;
+    }
+
+    .source-item .badge {
+      font-size: 10px;
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .source-item .badge.user {
+      background: #d4f1e4;
+      color: #0e5a2f;
+    }
+
+    .source-item .badge.org {
+      background: #ffe8dc;
+      color: #a82810;
+    }
+  </style>
+</head>
+<body>
+  <h1>
+    <span class="icon">📜</span>
+    Thoth
+  </h1>
+  <div class="subtitle">The AI scribe that records what matters</div>
+
+  <!-- API Keys Section -->
+  <div class="section">
+    <div class="section-title">API Keys</div>
+
+    <div class="input-group">
+      <label for="openai-key">OpenAI API Key</label>
+      <div class="key-input-row">
+        <input type="password" id="openai-key" placeholder="sk-...">
+        <button id="save-openai-btn">Save</button>
+      </div>
+      <div class="help-text">Used for AI-powered issue generation (gpt-4o-mini) | <a href="https://platform.openai.com/api-keys" target="_blank">Get API Key</a></div>
+      <div id="openai-status" class="status-message"></div>
+    </div>
+
+    <div class="input-group">
+      <label for="github-key">GitHub Personal Access Token</label>
+      <div class="key-input-row">
+        <input type="password" id="github-key" placeholder="ghp_... or github_pat_...">
+        <button id="save-github-btn">Save</button>
+      </div>
+      <div class="help-text">Requires scopes: repo, read:org | <a href="https://github.com/settings/tokens/new?description=Thoth%20Chrome%20Extension&scopes=repo,read:org" target="_blank">Generate Token</a></div>
+      <div id="github-status" class="status-message"></div>
+    </div>
+  </div>
+
+  <!-- Repository Sources Section -->
+  <div class="section">
+    <div class="section-title">Repository Sources</div>
+
+    <button id="load-sources-btn" class="secondary">Load Organizations & User</button>
+    <div id="load-sources-status" class="status-message"></div>
+
+    <div id="sources-container" style="display: none; margin-top: 16px;">
+      <label>Select which sources to include:</label>
+      <div class="help-text">Repositories from selected sources will appear in the context menu when creating issues.</div>
+      <div id="sources-list" class="source-list"></div>
+      <div class="repo-count" id="repo-count"></div>
+    </div>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>
