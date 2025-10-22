@@ -202,12 +202,41 @@ thoth/
 ├── popup.html          # Extension popup UI layout
 ├── popup.js            # Popup logic: settings, repo management
 ├── icon.png            # Extension icon (128×128)
+├── package.sh          # Packaging script for distribution
+├── Makefile            # Build automation
 └── README.md           # This file
 ```
 
 ---
 
 ## 🔧 Development
+
+### Building & Packaging
+
+To package the extension for distribution:
+
+```bash
+# Package the extension (creates dist/thoth-extension-v{version}.zip)
+make package
+
+# Clean build artifacts
+make clean
+
+# Show available commands
+make help
+```
+
+The packaging script:
+- Automatically extracts the version from `manifest.json`
+- Verifies all required files are present
+- Creates a clean distribution package in the `dist/` directory
+- Includes only essential extension files (no dev files or build artifacts)
+- Outputs package size and location
+
+The generated `.zip` file is ready for:
+- Chrome Web Store submission
+- Distribution to testers
+- Manual installation
 
 ### File Responsibilities
 
