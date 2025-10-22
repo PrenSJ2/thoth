@@ -2,37 +2,49 @@ name: Release Extension
 
 on:
   push:
-    tags:
-      - 'v*.*.*'  # Triggers on version tags like v1.0.0, v1.2.3, etc.
+    branches:
+      - main
 
 jobs:
   build-and-release:
     runs-on: ubuntu-latest
 
     permissions:
-      contents: write  # Required to create releases
+      contents: write  # Required to create releases and tags
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Fetch all history for tags
 
-      - name: Extract version from tag
+      - name: Extract version from manifest
         id: version
-        run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
-
-      - name: Verify manifest version matches tag
         run: |
-          MANIFEST_VERSION=$(grep -o '"version"[^"]*"[^"]*"' manifest.json | grep -o '[0-9.]*')
-          TAG_VERSION="${{ steps.version.outputs.VERSION }}"
+          VERSION=$(grep -o '"version"[^"]*"[^"]*"' manifest.json | grep -o '[0-9.]*')
+          echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
+          echo "Manifest version: $VERSION"
 
-          if [ "$MANIFEST_VERSION" != "$TAG_VERSION" ]; then
-            echo "❌ Error: manifest.json version ($MANIFEST_VERSION) does not match tag version ($TAG_VERSION)"
-            exit 1
+      - name: Check if version tag already exists
+        id: check_tag
+        run: |
+          if git rev-parse "v${{ steps.version.outputs.VERSION }}" >/dev/null 2>&1; then
+            echo "exists=true" >> $GITHUB_OUTPUT
+            echo "⚠️ Tag v${{ steps.version.outputs.VERSION }} already exists, skipping release"
+          else
+            echo "exists=false" >> $GITHUB_OUTPUT
+            echo "✓ Tag v${{ steps.version.outputs.VERSION }} does not exist, will create release"
           fi
 
-          echo "✓ Version match confirmed: $TAG_VERSION"
+      - name: Stop if tag exists
+        if: steps.check_tag.outputs.exists == 'true'
+        run: |
+          echo "Release for v${{ steps.version.outputs.VERSION }} already exists."
+          echo "To create a new release, bump the version in manifest.json"
+          exit 0
 
       - name: Package extension
+        if: steps.check_tag.outputs.exists == 'false'
         run: |
           # Create dist directory
           mkdir -p dist
@@ -53,11 +65,12 @@ jobs:
           ls -lh dist/
 
       - name: Generate changelog
+        if: steps.check_tag.outputs.exists == 'false'
         id: changelog
         run: |
           # Get commits since last tag
-          if git describe --tags --abbrev=0 HEAD^ 2>/dev/null; then
-            PREV_TAG=$(git describe --tags --abbrev=0 HEAD^)
+          if git describe --tags --abbrev=0 2>/dev/null; then
+            PREV_TAG=$(git describe --tags --abbrev=0)
             echo "CHANGELOG<<EOF" >> $GITHUB_OUTPUT
             git log ${PREV_TAG}..HEAD --pretty=format:"- %s (%h)" >> $GITHUB_OUTPUT
             echo "" >> $GITHUB_OUTPUT
@@ -66,9 +79,19 @@ jobs:
             echo "CHANGELOG=Initial release" >> $GITHUB_OUTPUT
           fi
 
+      - name: Create git tag
+        if: steps.check_tag.outputs.exists == 'false'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag -a "v${{ steps.version.outputs.VERSION }}" -m "Release v${{ steps.version.outputs.VERSION }}"
+          git push origin "v${{ steps.version.outputs.VERSION }}"
+
       - name: Create GitHub Release
+        if: steps.check_tag.outputs.exists == 'false'
         uses: softprops/action-gh-release@v1
         with:
+          tag_name: v${{ steps.version.outputs.VERSION }}
           name: Thoth v${{ steps.version.outputs.VERSION }}
           body: |
             ## 📜 Thoth Chrome Extension v${{ steps.version.outputs.VERSION }}
@@ -104,6 +127,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Release complete
+        if: steps.check_tag.outputs.exists == 'false'
         run: |
           echo "✓ Release v${{ steps.version.outputs.VERSION }} published successfully!"
           echo "View it at: https://github.com/${{ github.repository }}/releases/tag/v${{ steps.version.outputs.VERSION }}"

@@ -230,7 +230,7 @@ make clean
 
 #### Creating a Release
 
-Releases are automated via GitHub Actions. To create a new release:
+Releases are **fully automated**. Every push to `main` triggers the release workflow:
 
 1. **Update the version** in `manifest.json`:
    ```json
@@ -239,34 +239,34 @@ Releases are automated via GitHub Actions. To create a new release:
    }
    ```
 
-2. **Commit the change**:
+2. **Commit and push to main**:
    ```bash
    git add manifest.json
    git commit -m "Bump version to 1.2.0"
-   git push
+   git push origin main
    ```
 
-3. **Create and push the release tag**:
-   ```bash
-   make release VERSION=1.2.0
-   ```
+That's it! The GitHub Action will automatically:
+- Extract the version from `manifest.json`
+- Check if a release for this version already exists
+- If not, it will:
+  - Package the extension
+  - Generate a changelog from commits since the last release
+  - Create a git tag (e.g., `v1.2.0`)
+  - Create a GitHub release with formatted notes
+  - Upload the `.zip` file as a downloadable asset
 
-The GitHub Action will automatically:
-- Verify the manifest version matches the tag
-- Package the extension
-- Generate a changelog from commits
-- Create a GitHub release with release notes
-- Upload the `.zip` file as a downloadable asset
+**Important:** If you push to `main` without changing the version, the workflow skips creating a release (no duplicate releases).
 
 **View releases:** [GitHub Releases](../../releases)
 
-#### Manual Release (if needed)
+#### Manual Release (alternative method)
 
-If you need to create a tag manually:
+You can also use the Makefile helper:
 
 ```bash
-git tag -a v1.2.0 -m "Release v1.2.0"
-git push origin v1.2.0
+# Updates version, commits, and pushes to main
+make release VERSION=1.2.0
 ```
 
 ### File Responsibilities
