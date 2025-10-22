@@ -196,15 +196,18 @@ Thoth features an Egyptian-themed design inspired by the god of wisdom:
 
 ```
 thoth/
-├── manifest.json       # Extension configuration (Manifest V3)
-├── background.js       # Service worker: context menus, API calls, issue creation
-├── content.js          # Content script: captures selections and images
-├── popup.html          # Extension popup UI layout
-├── popup.js            # Popup logic: settings, repo management
-├── icon.png            # Extension icon (128×128)
-├── package.sh          # Packaging script for distribution
-├── Makefile            # Build automation
-└── README.md           # This file
+├── .github/
+│   └── workflows/
+│       └── release.yml     # GitHub Action for automated releases
+├── manifest.json           # Extension configuration (Manifest V3)
+├── background.js           # Service worker: context menus, API calls, issue creation
+├── content.js              # Content script: captures selections and images
+├── popup.html              # Extension popup UI layout
+├── popup.js                # Popup logic: settings, repo management
+├── icon.png                # Extension icon (128×128)
+├── package.sh              # Packaging script for local testing
+├── Makefile                # Build automation and release management
+└── README.md               # This file
 ```
 
 ---
@@ -213,7 +216,9 @@ thoth/
 
 ### Building & Packaging
 
-To package the extension for distribution:
+#### Local Testing
+
+To package the extension locally for testing:
 
 ```bash
 # Package the extension (creates dist/thoth-extension-v{version}.zip)
@@ -221,22 +226,48 @@ make package
 
 # Clean build artifacts
 make clean
-
-# Show available commands
-make help
 ```
 
-The packaging script:
-- Automatically extracts the version from `manifest.json`
-- Verifies all required files are present
-- Creates a clean distribution package in the `dist/` directory
-- Includes only essential extension files (no dev files or build artifacts)
-- Outputs package size and location
+#### Creating a Release
 
-The generated `.zip` file is ready for:
-- Chrome Web Store submission
-- Distribution to testers
-- Manual installation
+Releases are automated via GitHub Actions. To create a new release:
+
+1. **Update the version** in `manifest.json`:
+   ```json
+   {
+     "version": "1.2.0"
+   }
+   ```
+
+2. **Commit the change**:
+   ```bash
+   git add manifest.json
+   git commit -m "Bump version to 1.2.0"
+   git push
+   ```
+
+3. **Create and push the release tag**:
+   ```bash
+   make release VERSION=1.2.0
+   ```
+
+The GitHub Action will automatically:
+- Verify the manifest version matches the tag
+- Package the extension
+- Generate a changelog from commits
+- Create a GitHub release with release notes
+- Upload the `.zip` file as a downloadable asset
+
+**View releases:** [GitHub Releases](../../releases)
+
+#### Manual Release (if needed)
+
+If you need to create a tag manually:
+
+```bash
+git tag -a v1.2.0 -m "Release v1.2.0"
+git push origin v1.2.0
+```
 
 ### File Responsibilities
 

@@ -1,0 +1,109 @@
+name: Release Extension
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'  # Triggers on version tags like v1.0.0, v1.2.3, etc.
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write  # Required to create releases
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Extract version from tag
+        id: version
+        run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+
+      - name: Verify manifest version matches tag
+        run: |
+          MANIFEST_VERSION=$(grep -o '"version"[^"]*"[^"]*"' manifest.json | grep -o '[0-9.]*')
+          TAG_VERSION="${{ steps.version.outputs.VERSION }}"
+
+          if [ "$MANIFEST_VERSION" != "$TAG_VERSION" ]; then
+            echo "❌ Error: manifest.json version ($MANIFEST_VERSION) does not match tag version ($TAG_VERSION)"
+            exit 1
+          fi
+
+          echo "✓ Version match confirmed: $TAG_VERSION"
+
+      - name: Package extension
+        run: |
+          # Create dist directory
+          mkdir -p dist
+
+          # Package the extension
+          zip -q "dist/thoth-extension-v${{ steps.version.outputs.VERSION }}.zip" \
+            manifest.json \
+            background.js \
+            content.js \
+            popup.html \
+            popup.js \
+            icon.png \
+            README.md \
+            CHANGELOG.md
+
+          # Show package info
+          echo "Package created:"
+          ls -lh dist/
+
+      - name: Generate changelog
+        id: changelog
+        run: |
+          # Get commits since last tag
+          if git describe --tags --abbrev=0 HEAD^ 2>/dev/null; then
+            PREV_TAG=$(git describe --tags --abbrev=0 HEAD^)
+            echo "CHANGELOG<<EOF" >> $GITHUB_OUTPUT
+            git log ${PREV_TAG}..HEAD --pretty=format:"- %s (%h)" >> $GITHUB_OUTPUT
+            echo "" >> $GITHUB_OUTPUT
+            echo "EOF" >> $GITHUB_OUTPUT
+          else
+            echo "CHANGELOG=Initial release" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          name: Thoth v${{ steps.version.outputs.VERSION }}
+          body: |
+            ## 📜 Thoth Chrome Extension v${{ steps.version.outputs.VERSION }}
+
+            **The AI scribe that records what matters.**
+
+            ### 📥 Installation
+
+            1. Download `thoth-extension-v${{ steps.version.outputs.VERSION }}.zip` below
+            2. Extract the zip file
+            3. Open Chrome and go to `chrome://extensions/`
+            4. Enable "Developer mode"
+            5. Click "Load unpacked" and select the extracted folder
+            6. Configure your API keys in the extension popup
+
+            ### 📋 Prerequisites
+
+            - OpenAI API Key ([Get one here](https://platform.openai.com/api-keys))
+            - GitHub Personal Access Token with `repo` and `read:org` scopes ([Generate here](https://github.com/settings/tokens/new?description=Thoth%20Chrome%20Extension&scopes=repo,read:org))
+
+            ### 📝 Changes
+
+            ${{ steps.changelog.outputs.CHANGELOG }}
+
+            ---
+
+            **Full documentation:** [README.md](https://github.com/${{ github.repository }}/blob/main/README.md)
+          files: |
+            dist/thoth-extension-v${{ steps.version.outputs.VERSION }}.zip
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Release complete
+        run: |
+          echo "✓ Release v${{ steps.version.outputs.VERSION }} published successfully!"
+          echo "View it at: https://github.com/${{ github.repository }}/releases/tag/v${{ steps.version.outputs.VERSION }}"

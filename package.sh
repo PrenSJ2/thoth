@@ -38,6 +38,7 @@ FILES=(
     "popup.js"
     "icon.png"
     "README.md"
+    "CHANGELOG.md"
 )
 
 # Verify all required files exist
