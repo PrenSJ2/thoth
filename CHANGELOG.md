@@ -16,6 +16,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Collapsible/accordion API keys section that auto-collapses when keys are configured
 - Status indicator for API keys configuration (✓ Configured, ⚠ Incomplete, ✗ Not configured)
 - `clipboardRead` permission for clipboard access
+- Comprehensive PRIVACY_POLICY.md (GDPR/CCPA compliant)
+- Complete TERMS_OF_SERVICE.md
+- MIT License (LICENSE file)
+- Footer with legal links in popup
+- Legal documentation included in distribution packages
 
 ### Fixed
 - Service worker crash when context menu is clicked after worker restart

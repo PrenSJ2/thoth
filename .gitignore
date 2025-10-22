@@ -79,3 +79,6 @@ temp/
 # Chrome extension specific
 *.pem
 key.pem
+
+# Thoth uploaded images (stored in GitHub repos)
+.thoth-images/

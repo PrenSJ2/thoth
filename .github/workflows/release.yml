@@ -105,7 +105,10 @@ jobs:
             popup.js \
             icon.png \
             README.md \
-            CHANGELOG.md
+            CHANGELOG.md \
+            PRIVACY_POLICY.md \
+            TERMS_OF_SERVICE.md \
+            LICENSE
 
           # Show package info
           echo "Package created:"

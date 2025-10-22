@@ -39,6 +39,9 @@ FILES=(
     "icon.png"
     "README.md"
     "CHANGELOG.md"
+    "PRIVACY_POLICY.md"
+    "TERMS_OF_SERVICE.md"
+    "LICENSE"
 )
 
 # Verify all required files exist
@@ -54,8 +57,8 @@ done
 echo ""
 echo -e "${BLUE}Creating package...${NC}"
 
-# Create the zip file
-zip -q "$OUTPUT_FILE" "${FILES[@]}"
+# Create the zip file, excluding .thoth-images directory
+zip -q "$OUTPUT_FILE" "${FILES[@]}" -x "*.thoth-images/*" -x ".thoth-images/*"
 
 # Get file size
 SIZE=$(du -h "$OUTPUT_FILE" | cut -f1)

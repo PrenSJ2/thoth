@@ -344,7 +344,12 @@ This is a production-ready Chrome extension. If you'd like to contribute:
 
 ## 📜 License
 
-This project is provided as-is for the Ancient Bots team.
+This project is open source and available under the MIT License. See the LICENSE file for details.
+
+## 📋 Legal
+
+- **Privacy Policy**: See [PRIVACY_POLICY.md](./PRIVACY_POLICY.md) for how we handle your data (TL;DR: we don't collect any)
+- **Terms of Service**: See [TERMS_OF_SERVICE.md](./TERMS_OF_SERVICE.md) for usage terms
 
 ---
 
