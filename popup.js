@@ -14,6 +14,11 @@ const apiKeysHeader = document.getElementById('api-keys-header');
 const apiKeysToggle = document.getElementById('api-keys-toggle');
 const apiKeysContent = document.getElementById('api-keys-content');
 
+const repoSourcesHeader = document.getElementById('repo-sources-header');
+const repoSourcesToggle = document.getElementById('repo-sources-toggle');
+const repoSourcesContent = document.getElementById('repo-sources-content');
+const sourcesStatus = document.getElementById('sources-status');
+
 const createIssueBtn = document.getElementById('create-issue-btn');
 const createIssueStatus = document.getElementById('create-issue-status');
 const repoSelectContainer = document.getElementById('repo-select-container');
@@ -56,6 +61,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     populateSourcesList(localData.sources, localData.selectedSources || []);
     sourcesContainer.style.display = 'block';
     updateRepoCount(localData.reposList);
+  }
+
+  // Update sources status and auto-collapse if repos are loaded
+  updateSourcesStatus(localData.reposList);
+  if (localData.reposList && localData.reposList.length > 0) {
+    collapseRepoSources();
   }
 
   // Populate repo dropdown if repos exist
@@ -200,7 +211,13 @@ async function fetchAllSources(githubToken) {
 // Update repo count and dropdown when repos change
 function onReposUpdated(repos) {
   updateRepoCount(repos);
+  updateSourcesStatus(repos);
   populateRepoDropdown(repos);
+  
+  // Auto-collapse if repos are loaded
+  if (repos && repos.length > 0) {
+    collapseRepoSources();
+  }
 }
 
 // Fetch repositories from selected sources
@@ -374,6 +391,17 @@ function updateKeysStatus(openaiKey, githubKey) {
   }
 }
 
+// Update sources status indicator
+function updateSourcesStatus(repos) {
+  if (repos && repos.length > 0) {
+    sourcesStatus.textContent = `✓ ${repos.length} repos loaded`;
+    sourcesStatus.style.color = '#0e5a2f';
+  } else {
+    sourcesStatus.textContent = '✗ Not loaded';
+    sourcesStatus.style.color = '#a82810';
+  }
+}
+
 // Accordion toggle functionality
 apiKeysHeader.addEventListener('click', () => {
   const isCollapsed = apiKeysContent.classList.contains('collapsed');
@@ -392,6 +420,26 @@ function collapseApiKeys() {
 function expandApiKeys() {
   apiKeysContent.classList.remove('collapsed');
   apiKeysToggle.classList.remove('collapsed');
+}
+
+// Repository sources accordion toggle
+repoSourcesHeader.addEventListener('click', () => {
+  const isCollapsed = repoSourcesContent.classList.contains('collapsed');
+  if (isCollapsed) {
+    expandRepoSources();
+  } else {
+    collapseRepoSources();
+  }
+});
+
+function collapseRepoSources() {
+  repoSourcesContent.classList.add('collapsed');
+  repoSourcesToggle.classList.add('collapsed');
+}
+
+function expandRepoSources() {
+  repoSourcesContent.classList.remove('collapsed');
+  repoSourcesToggle.classList.remove('collapsed');
 }
 
 // Update keys status after saving

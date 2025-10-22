@@ -399,16 +399,24 @@
 
   <!-- Repository Sources Section -->
   <div class="section">
-    <div class="section-title">Repository Sources</div>
+    <div class="accordion-header" id="repo-sources-header">
+      <div>
+        <span class="section-title">Repository Sources</span>
+        <span class="keys-status" id="sources-status"></span>
+      </div>
+      <span class="accordion-toggle" id="repo-sources-toggle">▼</span>
+    </div>
 
-    <button id="load-sources-btn" class="secondary">Load Organizations & User</button>
-    <div id="load-sources-status" class="status-message"></div>
+    <div class="accordion-content" id="repo-sources-content">
+      <button id="load-sources-btn" class="secondary">Load Organizations & User</button>
+      <div id="load-sources-status" class="status-message"></div>
 
-    <div id="sources-container" style="display: none; margin-top: 16px;">
-      <label>Select which sources to include:</label>
-      <div class="help-text">Repositories from selected sources will appear in the context menu when creating issues.</div>
-      <div id="sources-list" class="source-list"></div>
-      <div class="repo-count" id="repo-count"></div>
+      <div id="sources-container" style="display: none; margin-top: 16px;">
+        <label>Select which sources to include:</label>
+        <div class="help-text">Repositories from selected sources will appear in the context menu when creating issues.</div>
+        <div id="sources-list" class="source-list"></div>
+        <div class="repo-count" id="repo-count"></div>
+      </div>
     </div>
   </div>
 
