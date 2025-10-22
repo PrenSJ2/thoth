@@ -11,9 +11,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - GitHub Actions workflow for automated releases on push to main
 - Makefile command for creating releases
 - CHANGELOG.md for tracking changes
-- Quick action button in popup to create issues with highlighted text (for sites that block right-click)
+- **Clipboard integration**: Quick action button to create issues from clipboard content
+- Works universally - copy text from anywhere and create issues instantly
 - Collapsible/accordion API keys section that auto-collapses when keys are configured
 - Status indicator for API keys configuration (✓ Configured, ⚠ Incomplete, ✗ Not configured)
+- `clipboardRead` permission for clipboard access
 
 ### Fixed
 - Service worker crash when context menu is clicked after worker restart

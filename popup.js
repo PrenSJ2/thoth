@@ -479,26 +479,22 @@ createIssueBtn.addEventListener('click', async () => {
     return;
   }
 
-  // Get selected text from current tab
+  // Read from clipboard
   try {
-    const [result] = await chrome.scripting.executeScript({
-      target: { tabId: currentTabId },
-      func: () => window.getSelection().toString()
-    });
-
-    currentSelectedText = result.result ? result.result.trim() : '';
+    const clipboardText = await navigator.clipboard.readText();
+    currentSelectedText = clipboardText ? clipboardText.trim() : '';
 
     if (!currentSelectedText) {
-      showStatus(createIssueStatus, 'No text selected. Please highlight text on the page.', 'error');
+      showStatus(createIssueStatus, 'Clipboard is empty. Copy some text first (Ctrl+C or Cmd+C).', 'error');
       return;
     }
 
     // Show repo selector
     repoSelectContainer.style.display = 'block';
-    showStatus(createIssueStatus, `Text captured (${currentSelectedText.length} chars). Select a repository.`, 'info');
+    showStatus(createIssueStatus, `Clipboard content captured (${currentSelectedText.length} chars). Select a repository.`, 'info');
   } catch (error) {
-    console.error('Error getting selection:', error);
-    showStatus(createIssueStatus, 'Could not get selected text. Try highlighting text first.', 'error');
+    console.error('Error reading clipboard:', error);
+    showStatus(createIssueStatus, 'Could not read clipboard. Make sure you copied some text first.', 'error');
   }
 });
 
