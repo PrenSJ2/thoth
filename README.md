@@ -245,44 +245,46 @@ make clean
 
 #### Creating a Release
 
-Releases are **fully automated**. Every push to `main` triggers the release workflow:
-
-1. **Update the version** in `manifest.json`:
-   ```json
-   {
-     "version": "1.2.0"
-   }
-   ```
-
-2. **Commit and push to main**:
-   ```bash
-   git add manifest.json
-   git commit -m "Bump version to 1.2.0"
-   git push origin main
-   ```
-
-That's it! The GitHub Action will automatically:
-- Extract the version from `manifest.json`
-- Check if a release for this version already exists
-- If not, it will:
-  - Package the extension
-  - Generate a changelog from commits since the last release
-  - Create a git tag (e.g., `v1.2.0`)
-  - Create a GitHub release with formatted notes
-  - Upload the `.zip` file as a downloadable asset
-
-**Important:** If you push to `main` without changing the version, the workflow skips creating a release (no duplicate releases).
-
-**View releases:** [GitHub Releases](../../releases)
-
-#### Manual Release (alternative method)
-
-You can also use the Makefile helper:
+Releases are **fully automatic**. Every push to `main` triggers the release workflow:
 
 ```bash
-# Updates version, commits, and pushes to main
-make release VERSION=1.2.0
+# Just commit and push your changes
+git add .
+git commit -m "Add new feature"
+git push origin main
 ```
+
+The GitHub Action will automatically:
+1. **Auto-increment the patch version** (e.g., 1.0.0 → 1.0.1)
+2. **Update `manifest.json`** with the new version
+3. **Commit the version bump** back to main
+4. **Package the extension** with all required files
+5. **Generate a changelog** from commits since last release
+6. **Create a git tag** (e.g., `v1.0.1`)
+7. **Create a GitHub release** with formatted notes
+8. **Upload the `.zip` file** as a downloadable asset
+
+**Every merge to main = automatic new release!**
+
+#### Manual Version Control
+
+For **major** or **minor** version bumps, update `manifest.json` manually before pushing:
+
+```json
+{
+  "version": "2.0.0"
+}
+```
+
+The action will detect this and use your version instead of auto-incrementing:
+
+```bash
+git add manifest.json
+git commit -m "Release v2.0.0 with breaking changes"
+git push origin main
+```
+
+**View releases:** [GitHub Releases](../../releases)
 
 ### File Responsibilities
 

@@ -20,7 +20,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - Release workflow now triggers on every push to main branch (automatic CD)
+- **Version auto-incrementing**: Patch version automatically increments on every push to main
 - API keys section now collapses by default when both keys are configured
+- Removed manual version bump requirement (now fully automated)
 
 ## [1.0.0] - 2025-10-22
 

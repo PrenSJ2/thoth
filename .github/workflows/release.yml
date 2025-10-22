@@ -10,47 +10,94 @@ jobs:
     runs-on: ubuntu-latest
 
     permissions:
-      contents: write  # Required to create releases and tags
+      contents: write  # Required to create releases, tags, and push commits
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
           fetch-depth: 0  # Fetch all history for tags
+          token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Extract version from manifest
-        id: version
+      - name: Get current version from manifest
+        id: current_version
         run: |
-          VERSION=$(grep -o '"version"[^"]*"[^"]*"' manifest.json | grep -o '[0-9.]*')
-          echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
-          echo "Manifest version: $VERSION"
+          CURRENT_VERSION=$(grep -o '"version"[^"]*"[^"]*"' manifest.json | grep -o '[0-9.]*')
+          echo "CURRENT_VERSION=$CURRENT_VERSION" >> $GITHUB_OUTPUT
+          echo "Current manifest version: $CURRENT_VERSION"
 
-      - name: Check if version tag already exists
-        id: check_tag
+      - name: Get latest release tag
+        id: latest_tag
         run: |
-          if git rev-parse "v${{ steps.version.outputs.VERSION }}" >/dev/null 2>&1; then
-            echo "exists=true" >> $GITHUB_OUTPUT
-            echo "⚠️ Tag v${{ steps.version.outputs.VERSION }} already exists, skipping release"
+          if git describe --tags --abbrev=0 2>/dev/null; then
+            LATEST_TAG=$(git describe --tags --abbrev=0)
+            LATEST_VERSION=${LATEST_TAG#v}
+            echo "LATEST_VERSION=$LATEST_VERSION" >> $GITHUB_OUTPUT
+            echo "Latest release version: $LATEST_VERSION"
           else
-            echo "exists=false" >> $GITHUB_OUTPUT
-            echo "✓ Tag v${{ steps.version.outputs.VERSION }} does not exist, will create release"
+            echo "LATEST_VERSION=0.0.0" >> $GITHUB_OUTPUT
+            echo "No previous releases found"
           fi
 
-      - name: Stop if tag exists
-        if: steps.check_tag.outputs.exists == 'true'
+      - name: Increment version
+        id: new_version
         run: |
-          echo "Release for v${{ steps.version.outputs.VERSION }} already exists."
-          echo "To create a new release, bump the version in manifest.json"
-          exit 0
+          CURRENT="${{ steps.current_version.outputs.CURRENT_VERSION }}"
+          LATEST="${{ steps.latest_tag.outputs.LATEST_VERSION }}"
+
+          # Parse version numbers
+          IFS='.' read -r -a current_parts <<< "$CURRENT"
+          IFS='.' read -r -a latest_parts <<< "$LATEST"
+
+          major="${current_parts[0]}"
+          minor="${current_parts[1]}"
+          patch="${current_parts[2]}"
+
+          latest_major="${latest_parts[0]}"
+          latest_minor="${latest_parts[1]}"
+          latest_patch="${latest_parts[2]}"
+
+          # If manifest version is greater than latest tag, use manifest version
+          if [ "$major" -gt "$latest_major" ] || \
+             ([ "$major" -eq "$latest_major" ] && [ "$minor" -gt "$latest_minor" ]) || \
+             ([ "$major" -eq "$latest_major" ] && [ "$minor" -eq "$latest_minor" ] && [ "$patch" -gt "$latest_patch" ]); then
+            NEW_VERSION="$CURRENT"
+            echo "Using manifest version (already incremented manually)"
+          else
+            # Auto-increment patch version
+            new_patch=$((latest_patch + 1))
+            NEW_VERSION="${latest_major}.${latest_minor}.${new_patch}"
+            echo "Auto-incrementing to: $NEW_VERSION"
+          fi
+
+          echo "NEW_VERSION=$NEW_VERSION" >> $GITHUB_OUTPUT
+          echo "New version will be: $NEW_VERSION"
+
+      - name: Update manifest.json with new version
+        run: |
+          NEW_VERSION="${{ steps.new_version.outputs.NEW_VERSION }}"
+          # Update version in manifest.json (Linux sed syntax)
+          sed -i "s/\"version\": \"[^\"]*\"/\"version\": \"$NEW_VERSION\"/" manifest.json
+          echo "✓ Updated manifest.json to version $NEW_VERSION"
+          cat manifest.json | grep version
+
+      - name: Commit version bump
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add manifest.json
+          git commit -m "Bump version to ${{ steps.new_version.outputs.NEW_VERSION }}" || echo "No changes to commit"
+          git push origin main || echo "Nothing to push"
 
       - name: Package extension
-        if: steps.check_tag.outputs.exists == 'false'
         run: |
+          NEW_VERSION="${{ steps.new_version.outputs.NEW_VERSION }}"
+
           # Create dist directory
           mkdir -p dist
 
           # Package the extension
-          zip -q "dist/thoth-extension-v${{ steps.version.outputs.VERSION }}.zip" \
+          zip -q "dist/thoth-extension-v${NEW_VERSION}.zip" \
             manifest.json \
             background.js \
             content.js \
@@ -65,14 +112,13 @@ jobs:
           ls -lh dist/
 
       - name: Generate changelog
-        if: steps.check_tag.outputs.exists == 'false'
         id: changelog
         run: |
-          # Get commits since last tag
+          # Get commits since last tag (excluding the version bump commit we just made)
           if git describe --tags --abbrev=0 2>/dev/null; then
             PREV_TAG=$(git describe --tags --abbrev=0)
             echo "CHANGELOG<<EOF" >> $GITHUB_OUTPUT
-            git log ${PREV_TAG}..HEAD --pretty=format:"- %s (%h)" >> $GITHUB_OUTPUT
+            git log ${PREV_TAG}..HEAD~1 --pretty=format:"- %s (%h)" >> $GITHUB_OUTPUT
             echo "" >> $GITHUB_OUTPUT
             echo "EOF" >> $GITHUB_OUTPUT
           else
@@ -80,27 +126,26 @@ jobs:
           fi
 
       - name: Create git tag
-        if: steps.check_tag.outputs.exists == 'false'
         run: |
+          NEW_VERSION="${{ steps.new_version.outputs.NEW_VERSION }}"
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git tag -a "v${{ steps.version.outputs.VERSION }}" -m "Release v${{ steps.version.outputs.VERSION }}"
-          git push origin "v${{ steps.version.outputs.VERSION }}"
+          git tag -a "v${NEW_VERSION}" -m "Release v${NEW_VERSION}"
+          git push origin "v${NEW_VERSION}"
 
       - name: Create GitHub Release
-        if: steps.check_tag.outputs.exists == 'false'
         uses: softprops/action-gh-release@v1
         with:
-          tag_name: v${{ steps.version.outputs.VERSION }}
-          name: Thoth v${{ steps.version.outputs.VERSION }}
+          tag_name: v${{ steps.new_version.outputs.NEW_VERSION }}
+          name: Thoth v${{ steps.new_version.outputs.NEW_VERSION }}
           body: |
-            ## 📜 Thoth Chrome Extension v${{ steps.version.outputs.VERSION }}
+            ## 📜 Thoth Chrome Extension v${{ steps.new_version.outputs.NEW_VERSION }}
 
             **The AI scribe that records what matters.**
 
             ### 📥 Installation
 
-            1. Download `thoth-extension-v${{ steps.version.outputs.VERSION }}.zip` below
+            1. Download `thoth-extension-v${{ steps.new_version.outputs.NEW_VERSION }}.zip` below
             2. Extract the zip file
             3. Open Chrome and go to `chrome://extensions/`
             4. Enable "Developer mode"
@@ -120,14 +165,14 @@ jobs:
 
             **Full documentation:** [README.md](https://github.com/${{ github.repository }}/blob/main/README.md)
           files: |
-            dist/thoth-extension-v${{ steps.version.outputs.VERSION }}.zip
+            dist/thoth-extension-v${{ steps.new_version.outputs.NEW_VERSION }}.zip
           draft: false
           prerelease: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Release complete
-        if: steps.check_tag.outputs.exists == 'false'
         run: |
-          echo "✓ Release v${{ steps.version.outputs.VERSION }} published successfully!"
-          echo "View it at: https://github.com/${{ github.repository }}/releases/tag/v${{ steps.version.outputs.VERSION }}"
+          NEW_VERSION="${{ steps.new_version.outputs.NEW_VERSION }}"
+          echo "✓ Release v${NEW_VERSION} published successfully!"
+          echo "View it at: https://github.com/${{ github.repository }}/releases/tag/v${NEW_VERSION}"
