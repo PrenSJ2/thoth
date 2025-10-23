@@ -30,6 +30,7 @@ if [ -f "$OUTPUT_FILE" ]; then
 fi
 
 # Files to include in the package
+# Only include files required for Chrome Web Store
 FILES=(
     "manifest.json"
     "background.js"
@@ -37,8 +38,6 @@ FILES=(
     "popup.html"
     "popup.js"
     "icon.png"
-    "README.md"
-    "CHANGELOG.md"
     "PRIVACY_POLICY.md"
     "TERMS_OF_SERVICE.md"
     "LICENSE"

@@ -265,8 +265,43 @@ The GitHub Action will automatically:
 6. **Create a git tag** (e.g., `v1.0.1`)
 7. **Create a GitHub release** with formatted notes
 8. **Upload the `.zip` file** as a downloadable asset
+9. **Upload to Chrome Web Store** automatically
 
 **Every merge to main = automatic new release!**
+
+#### Chrome Web Store Setup
+
+To enable automatic uploads to Chrome Web Store, you need to configure the service account credentials:
+
+1. **Add GitHub Secret**:
+   - Go to your repository settings → Secrets and variables → Actions
+   - Click "New repository secret"
+   - Name: `CHROME_WEB_STORE_CREDENTIALS`
+   - Value: Paste the entire service account JSON (the one provided by Google Cloud)
+
+2. **Service Account Format**:
+   ```json
+   {
+     "type": "service_account",
+     "project_id": "thoth-extension-443312",
+     "private_key_id": "...",
+     "private_key": "-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----\n",
+     "client_email": "thoth-extention-uploader@ancientbots.iam.gserviceaccount.com",
+     "client_id": "...",
+     "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+     "token_uri": "https://oauth2.googleapis.com/token",
+     "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+     "client_x509_cert_url": "...",
+     "universe_domain": "googleapis.com"
+   }
+   ```
+
+3. **Verify Upload**:
+   - After pushing to main, check the Actions tab for workflow logs
+   - The "Upload to Chrome Web Store" step should complete successfully
+   - The extension will be uploaded for review automatically
+
+**Extension ID**: `onihkjniidaelgjnloahebnnabfbmlfc`
 
 #### Manual Version Control
 

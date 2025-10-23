@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - GitHub Actions workflow for automated releases on push to main
+- **Automated Chrome Web Store uploads**: Extension automatically uploads to Chrome Web Store on every release
+- Service account authentication for Chrome Web Store API
 - Makefile command for creating releases
 - CHANGELOG.md for tracking changes
 - **Clipboard integration**: Quick action button to create issues from clipboard content
@@ -28,6 +30,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Release workflow now triggers on every push to main branch (automatic CD)
 - **Version auto-incrementing**: Patch version automatically increments on every push to main
+- **Full deployment automation**: Every push to main now creates GitHub release AND uploads to Chrome Web Store
+- **Optimized package size**: Removed README.md and CHANGELOG.md from extension package (only needed for GitHub)
 - API keys section now collapses by default when both keys are configured
 - Removed manual version bump requirement (now fully automated)
 

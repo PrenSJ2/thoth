@@ -96,7 +96,7 @@ jobs:
           # Create dist directory
           mkdir -p dist
 
-          # Package the extension
+          # Package the extension (Chrome Web Store only needs runtime files + legal docs)
           zip -q "dist/thoth-extension-v${NEW_VERSION}.zip" \
             manifest.json \
             background.js \
@@ -104,11 +104,10 @@ jobs:
             popup.html \
             popup.js \
             icon.png \
-            README.md \
-            CHANGELOG.md \
             PRIVACY_POLICY.md \
             TERMS_OF_SERVICE.md \
-            LICENSE
+            LICENSE \
+            -x "*.thoth-images/*" -x ".thoth-images/*"
 
           # Show package info
           echo "Package created:"
@@ -174,8 +173,16 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Upload to Chrome Web Store
+        uses: PlasmoHQ/bpp@v3
+        with:
+          keys: ${{ secrets.CHROME_WEB_STORE_CREDENTIALS }}
+          artifact: dist/thoth-extension-v${{ steps.new_version.outputs.NEW_VERSION }}.zip
+          verbose: true
+
       - name: Release complete
         run: |
           NEW_VERSION="${{ steps.new_version.outputs.NEW_VERSION }}"
           echo "✓ Release v${NEW_VERSION} published successfully!"
-          echo "View it at: https://github.com/${{ github.repository }}/releases/tag/v${NEW_VERSION}"
+          echo "✓ Extension uploaded to Chrome Web Store!"
+          echo "View GitHub release at: https://github.com/${{ github.repository }}/releases/tag/v${NEW_VERSION}"
