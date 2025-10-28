@@ -339,12 +339,18 @@ async function fetchIssueTemplate(repoFullName, githubToken) {
   };
 
   // Try common template locations in order
+  // Prefer Markdown templates as they're easier for AI to use
+  // YAML forms are designed for interactive web forms, not AI templates
   const templatePaths = [
     '.github/ISSUE_TEMPLATE.md',
     '.github/ISSUE_TEMPLATE/bug_report.md',
     '.github/ISSUE_TEMPLATE/feature_request.md',
     'ISSUE_TEMPLATE.md',
-    '.github/issue_template.md'
+    '.github/issue_template.md',
+    // Try YAML forms as fallback (will parse them for field info)
+    '.github/ISSUE_TEMPLATE/bug_report.yml',
+    '.github/ISSUE_TEMPLATE/feature_request.yml',
+    '.github/ISSUE_TEMPLATE.yml'
   ];
 
   for (const path of templatePaths) {
@@ -356,15 +362,60 @@ async function fetchIssueTemplate(repoFullName, githubToken) {
 
       if (response.ok) {
         const data = await response.json();
-        // Decode base64 content
-        const template = atob(data.content);
-        console.log(`Found issue template at ${path}`);
+        // Decode base64 content (remove newlines first as GitHub API includes them for readability)
+        const template = atob(data.content.replace(/\n/g, ''));
+        console.log(`✓ Found issue template at ${path}`);
         return template;
       }
     } catch (error) {
       // Continue to next template location
+      console.log(`✗ Template not found at ${path}:`, error.message || 'Not found');
       continue;
     }
+  }
+
+  // Try to list and use the first file in .github/ISSUE_TEMPLATE/ directory
+  try {
+    const response = await fetch(
+      `https://api.github.com/repos/${repoFullName}/contents/.github/ISSUE_TEMPLATE`,
+      { headers }
+    );
+
+    if (response.ok) {
+      const files = await response.json();
+      console.log(`Found ${files.length} files in .github/ISSUE_TEMPLATE/`);
+
+      // Filter for markdown and yaml files, excluding config
+      const templateFiles = files.filter(file =>
+        file.type === 'file' &&
+        (file.name.endsWith('.md') || file.name.endsWith('.yml') || file.name.endsWith('.yaml')) &&
+        file.name !== 'config.yml'
+      );
+
+      if (templateFiles.length > 0) {
+        // Prefer Markdown templates over YAML (sort .md before .yml/.yaml)
+        templateFiles.sort((a, b) => {
+          const aIsMd = a.name.endsWith('.md');
+          const bIsMd = b.name.endsWith('.md');
+          if (aIsMd && !bIsMd) return -1;
+          if (!aIsMd && bIsMd) return 1;
+          return a.name.localeCompare(b.name); // Alphabetical within same type
+        });
+
+        const firstTemplate = templateFiles[0];
+        console.log(`Using template file: ${firstTemplate.name} (${templateFiles.length} total templates found)`);
+
+        const templateResponse = await fetch(firstTemplate.url, { headers });
+        if (templateResponse.ok) {
+          const templateData = await templateResponse.json();
+          const template = atob(templateData.content.replace(/\n/g, ''));
+          console.log(`✓ Found issue template: ${firstTemplate.path}`);
+          return template;
+        }
+      }
+    }
+  } catch (error) {
+    console.log('Could not list .github/ISSUE_TEMPLATE/ directory:', error.message);
   }
 
   // No template found

@@ -355,11 +355,22 @@ git push origin main
 ### Issue Template Detection
 
 Thoth automatically checks for issue templates in the following locations (in order):
-1. `.github/ISSUE_TEMPLATE.md`
-2. `.github/ISSUE_TEMPLATE/bug_report.md`
-3. `.github/ISSUE_TEMPLATE/feature_request.md`
-4. `ISSUE_TEMPLATE.md`
-5. `.github/issue_template.md`
+1. `.github/ISSUE_TEMPLATE.md` (legacy single template)
+2. `.github/ISSUE_TEMPLATE/bug_report.md` (common name)
+3. `.github/ISSUE_TEMPLATE/feature_request.md` (common name)
+4. `ISSUE_TEMPLATE.md` (very old legacy location)
+5. `.github/issue_template.md` (lowercase variant)
+6. `.github/ISSUE_TEMPLATE/bug_report.yml` (YAML issue form)
+7. `.github/ISSUE_TEMPLATE/feature_request.yml` (YAML issue form)
+8. `.github/ISSUE_TEMPLATE.yml` (legacy single YAML form)
+
+If no specific template is found, Thoth will list all templates in `.github/ISSUE_TEMPLATE/` and use the first one (excluding `config.yml`).
+
+**Template Format Support**:
+- **Markdown templates** (`.md`): Preferred format - AI easily fills in sections and placeholders
+- **YAML issue forms** (`.yml`): Supported as fallback - AI extracts field information
+
+**Note**: Markdown templates are prioritized over YAML forms because they're easier for AI to interpret and fill out. YAML forms are designed for interactive web forms, not AI-generated content.
 
 When a template is found, the AI uses it to structure the generated issue content, filling in sections and placeholders with relevant information from your selected content.
 
