@@ -174,11 +174,14 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Upload to Chrome Web Store
-        uses: PlasmoHQ/bpp@v3
+        uses: mobilefirstllc/cws-publish@latest
         with:
-          keys: ${{ secrets.CHROME_WEB_STORE_CREDENTIALS }}
-          artifact: dist/thoth-extension-v${{ steps.new_version.outputs.NEW_VERSION }}.zip
-          verbose: true
+          action: 'upload'  # Options: 'upload' (manual publish), 'publish' (auto-publish), 'testers'
+          client_id: ${{ secrets.CHROME_CLIENT_ID }}
+          client_secret: ${{ secrets.CHROME_CLIENT_SECRET }}
+          refresh_token: ${{ secrets.CHROME_REFRESH_TOKEN }}
+          extension_id: ${{ secrets.CHROME_EXTENSION_ID }}
+          zip_file: dist/thoth-extension-v${{ steps.new_version.outputs.NEW_VERSION }}.zip
 
       - name: Release complete
         run: |

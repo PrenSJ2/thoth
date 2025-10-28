@@ -2,420 +2,111 @@
 
 **The AI scribe that records what matters.**
 
-Thoth is a Chrome extension that lets you highlight text or images on any webpage, use AI to summarize or evaluate the content, and automatically create a GitHub issue in your chosen repository.
+Thoth is a Chrome extension that captures text and images from any webpage and automatically creates GitHub issues using AI.
 
----
+## ✨ Features
 
-## 🎯 Features
+- 🎯 **Smart Capture**: Highlight text, right-click images, or use clipboard
+- 🤖 **AI-Powered**: GPT-4o-mini generates structured issue titles and descriptions
+- 📋 **Template Support**: Automatically detects and uses repository issue templates
+- 🏢 **Multi-Repository**: Works with personal and organization repositories
+- 🖼️ **Image Support**: Captures and embeds images in issues
+- ⚡ **Quick Access**: Right-click context menu or popup for blocked sites
 
-- **Clipboard Integration**: Create issues from any copied text - works everywhere, even outside the browser
-- **Quick Actions**: Create issues from the popup for sites that block right-click (like Excel Online)
-- **Smart Selection**: Highlight text or right-click images on any webpage
-- **Combined Content**: Capture both text and images together in a single issue
-- **AI-Powered**: Uses OpenAI GPT-4o-mini to generate structured issue titles and descriptions
-- **Issue Template Support**: Automatically detects and uses repository issue templates
-- **Auto-Open Issues**: Automatically opens created issues in a new tab
-- **Multi-Repository Support**: Works with both personal and organization GitHub repositories
-- **Source Filtering**: Select which users/organizations to include for cleaner repository lists
-- **Context Menu Integration**: Quick access via right-click context menu
-- **Collapsible Settings**: API keys section auto-collapses when configured
-- **Secure Storage**: API keys stored securely in Chrome's sync storage
-- **Clean UI**: Minimal interface with Egyptian-themed branding (cream, teal, orange, gold)
+## 🚀 Quick Start
 
----
+### Installation
 
-## 📋 Prerequisites
+1. Clone this repository or [download from Chrome Web Store](#)
+2. Open `chrome://extensions/` in Chrome
+3. Enable **Developer mode**
+4. Click **Load unpacked** and select the `thoth` folder
 
-Before installing Thoth, you'll need:
+### Setup
 
-1. **OpenAI API Key**
-   - [Create a new API key](https://platform.openai.com/api-keys)
-   - Sign up at [platform.openai.com](https://platform.openai.com) if you don't have an account
-   - Click "Create new secret key" and give it a name (e.g., "Thoth Extension")
-   - Copy the key immediately (starts with `sk-`) - you won't be able to see it again
+1. Click the Thoth extension icon
+2. Add your API keys:
+   - **OpenAI API Key**: [Get one here](https://platform.openai.com/api-keys)
+   - **GitHub Token**: [Generate here](https://github.com/settings/tokens/new?description=Thoth&scopes=repo,read:org) (requires `repo` and `read:org` scopes)
+3. Click **Load Organizations & User**
+4. Select which sources to include
 
-2. **GitHub Personal Access Token (PAT)**
-   - [Generate a new token with pre-filled settings](https://github.com/settings/tokens/new?description=Thoth%20Chrome%20Extension&scopes=repo,read:org)
-   - Or manually go to [github.com/settings/tokens](https://github.com/settings/tokens) → "Generate new token (classic)"
-   - Required scopes:
-     - ✅ `repo` (Full control of private repositories)
-     - ✅ `read:org` (Read org and team membership)
-   - Click "Generate token" and copy it immediately (starts with `ghp_` or `github_pat_`)
+### Usage
 
----
+**From anywhere (clipboard method)**:
+1. Copy text (Ctrl+C or Cmd+C)
+2. Click Thoth icon → **Create Issue from Clipboard**
+3. Select repository → Create
 
-## 🚀 Installation
+**From webpage (context menu)**:
+1. Highlight text or right-click an image
+2. Right-click → **Create GitHub Issue with AI**
+3. Select repository
 
-### Step 1: Load the Extension
-
-1. Download or clone this repository
-2. Open Chrome and navigate to `chrome://extensions/`
-3. Enable **Developer mode** (toggle in top-right corner)
-4. Click **Load unpacked**
-5. Select the `thoth` folder
-6. The Thoth icon should appear in your extensions toolbar
-
-### Step 2: Configure API Keys
-
-1. Click the Thoth extension icon in your toolbar
-2. Enter your **OpenAI API Key** in the first field
-3. Enter your **GitHub Personal Access Token** in the second field
-4. Click **Save Keys**
-5. You should see a success message
-
-### Step 3: Select Repository Sources
-
-1. In the Thoth popup, click **Load Organizations & User**
-2. Thoth will load all your accessible sources (your user account + organizations)
-3. Check the boxes next to the sources you want to include:
-   - Sources labeled `USER` are your personal account
-   - Sources labeled `ORG` are organizations you belong to
-4. Repositories from selected sources will automatically load and appear in the context menu
-5. You can check/uncheck sources at any time to filter which repositories are available
-
----
-
-## 📖 Usage
-
-### Quick Actions (For Sites That Block Right-Click)
-
-Some websites like Excel Online disable right-click. For these sites, use the popup button:
-
-1. **Copy text** from anywhere (Ctrl+C or Cmd+C)
-2. **Click the Thoth extension icon** in your toolbar
-3. Click **"Create Issue from Clipboard"**
-4. Select a repository from the dropdown
-5. Click **"Create Issue"**
-6. Thoth will create the issue and open it in a new tab
-
-**Tip**: This method works on any website and any text source - even content from other applications!
-
-### Creating an Issue from Selected Text (Context Menu)
-
-1. **Highlight text** on any webpage that you want to capture
-2. **Right-click** the selected text
-3. Navigate to **"Create GitHub Issue with AI"**
-4. Select the repository where you want to create the issue from the submenu
-   - Only repositories from your selected sources will appear
-5. Thoth will:
-   - Check if the repository has an issue template
-   - Send the selected text to OpenAI
-   - Generate a structured issue title and description (using the template if available)
-   - Create the issue in your chosen GitHub repository
-   - Open the issue in a new tab automatically
-   - Show a success notification
-
-**Note**: If your repository has issue templates, Thoth will automatically detect and use them to structure the generated issue content.
-
-### Creating an Issue from an Image
-
-1. **Right-click** any image on a webpage
-2. Navigate to **"Create GitHub Issue with AI"**
-3. Select the repository where you want to create the issue
-4. Thoth will:
-   - Check if the repository has an issue template
-   - Capture the image URL
-   - Send it to OpenAI with context
-   - Generate an issue with the image embedded (using the template if available)
-   - Create the issue in GitHub
-   - Open the issue in a new tab automatically
-   - Show a success notification
-
-### Creating an Issue with Both Text and Image
-
-1. **Highlight text** on the webpage
-2. **Right-click** on an image while the text is still selected
-3. Navigate to **"Create GitHub Issue with AI"**
-4. Select the repository where you want to create the issue
-5. Thoth will:
-   - Capture both the selected text and the image URL
-   - Send both to OpenAI with context
-   - Generate an issue that includes both the text content and the embedded image
-   - Create the issue in GitHub
-   - Open the issue in a new tab automatically
-   - Show a success notification
-
-**Tip**: This is perfect for capturing bug reports with screenshots, feature requests with mockups, or any content that needs both textual and visual context!
-
----
-
-## 🎨 Branding
-
-Thoth features an Egyptian-themed design inspired by the god of wisdom:
-
-- **Background**: Light Papyrus (`#faf8f0`)
-- **Primary**: Dark Teal (`#16a085`) - for primary actions and links
-- **Accent**: Burnt Orange (`#d45f13`) - for headers and highlights
-- **Secondary**: Gold (`#d4a03a`) - for secondary actions
-- **Text**: Deep Navy (`#1a1a2e`) - for primary text with high contrast
-- **Typography**: System fonts with clean, minimal styling and enhanced readability
-- **Icon**: Egyptian ibis holding a scroll, representing Thoth's sacred animal
-
----
-
-## 🔒 Security & Privacy
-
-- **API Keys**: Stored securely in Chrome's sync storage (encrypted and synced across devices)
-- **No Data Collection**: Thoth does not collect or transmit any data except to OpenAI and GitHub APIs
-- **Local Processing**: All extension logic runs locally in your browser
-- **Permissions**:
-  - `contextMenus`: Add right-click menu items
-  - `storage`: Save API keys and preferences
-  - `activeTab`: Access current tab content when triggered
-  - `scripting`: Inject content script for selection capture
-  - `notifications`: Show status notifications
-  - `clipboardRead`: Read clipboard content for quick actions
-
----
+The extension will generate an issue title and description, create the issue, and open it in a new tab.
 
 ## 🛠️ Troubleshooting
 
-### "Setup Required" Notification
+| Issue | Solution |
+|-------|----------|
+| No API keys warning | Add OpenAI and GitHub keys in extension popup |
+| No repositories showing | Check token scopes (`repo`, `read:org`) and select sources |
+| Context menu missing | Load sources and reload the webpage |
+| Issue creation fails | Verify repository write access and API quotas |
 
-**Problem**: You see a notification saying "Please configure your API keys"
+For detailed troubleshooting, check the browser console (F12).
 
-**Solution**: Open the Thoth popup and save your OpenAI and GitHub API keys
+## 🔒 Privacy & Security
 
-### No Sources or Repositories Showing
-
-**Problem**: No sources appear after clicking "Load Organizations & User" or no repositories in context menu
-
-**Solution**:
-- Verify your GitHub token has the correct scopes (`repo`, `read:org`)
-- Make sure you've selected at least one source checkbox in the popup
-- Check the repo count message at the bottom of the sources section
-- Try refreshing sources by clicking "Refresh Sources"
-- Open the browser console (F12) and check for error messages
-
-### "Failed to create issue" Error
-
-**Problem**: Issue creation fails with an error notification
-
-**Solution**:
-- Verify you have write access to the selected repository
-- Check that both API keys are valid and not expired
-- Ensure you have remaining quota on your OpenAI account
-- Check the browser console for detailed error messages
-
-### Context Menu Not Appearing
-
-**Problem**: Right-click menu doesn't show "Create GitHub Issue with AI"
-
-**Solution**:
-- Make sure you've loaded sources and selected at least one source
-- Verify that repositories have been loaded (check repo count in popup)
-- Reload the extension: go to `chrome://extensions/`, find Thoth, and click the refresh icon
-- Try reloading the webpage you're working on
-
----
-
-## 📁 Project Structure
-
-```
-thoth/
-├── .github/
-│   └── workflows/
-│       └── release.yml     # GitHub Action for automated releases
-├── manifest.json           # Extension configuration (Manifest V3)
-├── background.js           # Service worker: context menus, API calls, issue creation
-├── content.js              # Content script: captures selections and images
-├── popup.html              # Extension popup UI layout
-├── popup.js                # Popup logic: settings, repo management
-├── icon.png                # Extension icon (128×128)
-├── package.sh              # Packaging script for local testing
-├── Makefile                # Build automation and release management
-└── README.md               # This file
-```
-
----
+- API keys stored securely in Chrome's encrypted sync storage
+- No data collection - only communicates with OpenAI and GitHub APIs
+- All processing happens locally in your browser
+- See [PRIVACY_POLICY.md](./PRIVACY_POLICY.md) and [TERMS_OF_SERVICE.md](./TERMS_OF_SERVICE.md)
 
 ## 🔧 Development
 
-### Building & Packaging
-
-#### Local Testing
-
-To package the extension locally for testing:
+### Local Testing
 
 ```bash
-# Package the extension (creates dist/thoth-extension-v{version}.zip)
-make package
-
-# Clean build artifacts
-make clean
+make package  # Creates dist/thoth-extension-v{version}.zip
+make clean    # Remove build artifacts
 ```
 
-#### Creating a Release
+### Releasing
 
-Releases are **fully automatic**. Every push to `main` triggers the release workflow:
+Push to `main` branch - GitHub Actions automatically:
+- Increments version
+- Creates release
+- Uploads to Chrome Web Store
 
-```bash
-# Just commit and push your changes
-git add .
-git commit -m "Add new feature"
-git push origin main
-```
+See [CHROME_WEB_STORE_SETUP.md](./CHROME_WEB_STORE_SETUP.md) for detailed publishing setup.
 
-The GitHub Action will automatically:
-1. **Auto-increment the patch version** (e.g., 1.0.0 → 1.0.1)
-2. **Update `manifest.json`** with the new version
-3. **Commit the version bump** back to main
-4. **Package the extension** with all required files
-5. **Generate a changelog** from commits since last release
-6. **Create a git tag** (e.g., `v1.0.1`)
-7. **Create a GitHub release** with formatted notes
-8. **Upload the `.zip` file** as a downloadable asset
-9. **Upload to Chrome Web Store** automatically
-
-**Every merge to main = automatic new release!**
-
-#### Chrome Web Store Setup
-
-To enable automatic uploads to Chrome Web Store, you need to configure the service account credentials:
-
-1. **Add GitHub Secret**:
-   - Go to your repository settings → Secrets and variables → Actions
-   - Click "New repository secret"
-   - Name: `CHROME_WEB_STORE_CREDENTIALS`
-   - Value: Paste the entire service account JSON (the one provided by Google Cloud)
-
-2. **Service Account Format**:
-   ```json
-   {
-     "type": "service_account",
-     "project_id": "thoth-extension-443312",
-     "private_key_id": "...",
-     "private_key": "-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----\n",
-     "client_email": "thoth-extention-uploader@ancientbots.iam.gserviceaccount.com",
-     "client_id": "...",
-     "auth_uri": "https://accounts.google.com/o/oauth2/auth",
-     "token_uri": "https://oauth2.googleapis.com/token",
-     "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
-     "client_x509_cert_url": "...",
-     "universe_domain": "googleapis.com"
-   }
-   ```
-
-3. **Verify Upload**:
-   - After pushing to main, check the Actions tab for workflow logs
-   - The "Upload to Chrome Web Store" step should complete successfully
-   - The extension will be uploaded for review automatically
-
-**Extension ID**: `onihkjniidaelgjnloahebnnabfbmlfc`
-
-#### Manual Version Control
-
-For **major** or **minor** version bumps, update `manifest.json` manually before pushing:
-
-```json
-{
-  "version": "2.0.0"
-}
-```
-
-The action will detect this and use your version instead of auto-incrementing:
-
-```bash
-git add manifest.json
-git commit -m "Release v2.0.0 with breaking changes"
-git push origin main
-```
-
-**View releases:** [GitHub Releases](../../releases)
-
-### File Responsibilities
-
-- **manifest.json**: Defines extension metadata, permissions, and entry points
-- **background.js**: Service worker that handles:
-  - Dynamic context menu creation
-  - Issue template detection and fetching
-  - OpenAI API calls for issue generation
-  - GitHub API calls for issue creation
-  - Chrome notifications
-- **content.js**: Injected into web pages to capture selections and track right-clicked elements
-- **popup.html/popup.js**: Extension settings interface for:
-  - API key management
-  - Organization and user source selection
-  - Repository filtering via source checkboxes
-
-### API Endpoints Used
-
-**OpenAI**:
-- `POST https://api.openai.com/v1/chat/completions`
-- Model: `gpt-4o-mini`
-
-**GitHub**:
-- `GET https://api.github.com/user` (fetch current user)
-- `GET https://api.github.com/user/orgs` (fetch organizations)
-- `GET https://api.github.com/users/{user}/repos?per_page=100` (fetch user repositories)
-- `GET https://api.github.com/orgs/{org}/repos?per_page=100` (fetch org repositories)
-- `GET https://api.github.com/repos/{owner}/{repo}/contents/{path}` (for issue templates)
-- `POST https://api.github.com/repos/{owner}/{repo}/issues` (create issue)
-
-### Issue Template Detection
-
-Thoth automatically checks for issue templates in the following locations (in order):
-1. `.github/ISSUE_TEMPLATE.md` (legacy single template)
-2. `.github/ISSUE_TEMPLATE/bug_report.md` (common name)
-3. `.github/ISSUE_TEMPLATE/feature_request.md` (common name)
-4. `ISSUE_TEMPLATE.md` (very old legacy location)
-5. `.github/issue_template.md` (lowercase variant)
-6. `.github/ISSUE_TEMPLATE/bug_report.yml` (YAML issue form)
-7. `.github/ISSUE_TEMPLATE/feature_request.yml` (YAML issue form)
-8. `.github/ISSUE_TEMPLATE.yml` (legacy single YAML form)
-
-If no specific template is found, Thoth will list all templates in `.github/ISSUE_TEMPLATE/` and use the first one (excluding `config.yml`).
-
-**Template Format Support**:
-- **Markdown templates** (`.md`): Preferred format - AI easily fills in sections and placeholders
-- **YAML issue forms** (`.yml`): Supported as fallback - AI extracts field information
-
-**Note**: Markdown templates are prioritized over YAML forms because they're easier for AI to interpret and fill out. YAML forms are designed for interactive web forms, not AI-generated content.
-
-When a template is found, the AI uses it to structure the generated issue content, filling in sections and placeholders with relevant information from your selected content.
-
----
-
-## 🤝 Contributing
-
-This is a production-ready Chrome extension. If you'd like to contribute:
+### Contributing
 
 1. Fork the repository
 2. Create a feature branch
 3. Make your changes
-4. Test thoroughly in Chrome
-5. Submit a pull request
+4. Submit a pull request
 
----
+## 📁 Key Files
+
+- `manifest.json` - Extension configuration
+- `background.js` - Service worker (API calls, issue creation)
+- `content.js` - Content script (selection capture)
+- `popup.html/js` - Extension UI
+
+## 📚 Documentation
+
+- [Chrome Web Store Setup](./CHROME_WEB_STORE_SETUP.md) - Publishing automation
+- [Privacy Policy](./PRIVACY_POLICY.md) - Data handling
+- [Terms of Service](./TERMS_OF_SERVICE.md) - Usage terms
 
 ## 📜 License
 
-This project is open source and available under the MIT License. See the LICENSE file for details.
-
-## 📋 Legal
-
-- **Privacy Policy**: See [PRIVACY_POLICY.md](./PRIVACY_POLICY.md) for how we handle your data (TL;DR: we don't collect any)
-- **Terms of Service**: See [TERMS_OF_SERVICE.md](./TERMS_OF_SERVICE.md) for usage terms
+MIT License - see [LICENSE](./LICENSE) file for details.
 
 ---
 
-## ✨ Credits
+**Thoth** - Named after the ancient Egyptian god of writing, knowledge, and wisdom.
 
-**Thoth** - Named after the ancient Egyptian god of writing, knowledge, and wisdom. Just as Thoth recorded the deeds of the gods, this extension records what matters on the web.
-
-Built with ❤️ for Ancient Bots.
-
----
-
-## 📞 Support
-
-For issues, questions, or feature requests:
-- Check the Troubleshooting section above
-- Review the browser console for error messages
-- Verify your API keys are valid and have the correct scopes
-
----
-
-**Version**: 1.0.0
-**Manifest**: V3
-**Minimum Chrome Version**: 88+
+Built with ❤️ for [Ancient Bots](https://github.com/PrenSJ2)
