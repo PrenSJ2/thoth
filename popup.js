@@ -71,7 +71,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // Populate repo dropdown if repos exist
   if (localData.reposList && localData.reposList.length > 0) {
-    populateRepoDropdown(localData.reposList);
+    await populateRepoDropdown(localData.reposList);
   }
 
   // Get current tab for quick actions
@@ -209,11 +209,11 @@ async function fetchAllSources(githubToken) {
 }
 
 // Update repo count and dropdown when repos change
-function onReposUpdated(repos) {
+async function onReposUpdated(repos) {
   updateRepoCount(repos);
   updateSourcesStatus(repos);
-  populateRepoDropdown(repos);
-  
+  await populateRepoDropdown(repos);
+
   // Auto-collapse if repos are loaded
   if (repos && repos.length > 0) {
     collapseRepoSources();
@@ -490,7 +490,7 @@ saveGithubBtn.addEventListener('click', async () => {
 });
 
 // Populate repository dropdown
-function populateRepoDropdown(repos) {
+async function populateRepoDropdown(repos) {
   quickRepoSelect.innerHTML = '';
 
   if (!repos || repos.length === 0) {
@@ -508,6 +508,16 @@ function populateRepoDropdown(repos) {
     option.textContent = `${prefix} ${repo.full_name}`;
     quickRepoSelect.appendChild(option);
   });
+
+  // Restore last selected repo if it exists
+  const localData = await chrome.storage.local.get(['lastSelectedRepo']);
+  if (localData.lastSelectedRepo) {
+    // Check if the last selected repo is still in the list
+    const repoExists = repos.some(repo => repo.full_name === localData.lastSelectedRepo);
+    if (repoExists) {
+      quickRepoSelect.value = localData.lastSelectedRepo;
+    }
+  }
 }
 
 // Create issue button handler
@@ -583,6 +593,9 @@ confirmCreateBtn.addEventListener('click', async () => {
       showStatus(createIssueStatus, 'Issue created successfully!', 'success');
       repoSelectContainer.style.display = 'none';
       currentSelectedText = '';
+
+      // Save last selected repo for next time
+      await chrome.storage.local.set({ lastSelectedRepo: selectedRepo });
 
       // Open the issue
       chrome.tabs.create({ url: response.issueUrl });
