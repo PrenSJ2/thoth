@@ -173,19 +173,15 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Upload to Chrome Web Store
-        uses: mobilefirstllc/cws-publish@latest
-        with:
-          action: 'upload'  # Options: 'upload' (manual publish), 'publish' (auto-publish), 'testers'
-          client_id: ${{ secrets.CHROME_CLIENT_ID }}
-          client_secret: ${{ secrets.CHROME_CLIENT_SECRET }}
-          refresh_token: ${{ secrets.CHROME_REFRESH_TOKEN }}
-          extension_id: ${{ secrets.CHROME_EXTENSION_ID }}
-          zip_file: dist/thoth-extension-v${{ steps.new_version.outputs.NEW_VERSION }}.zip
+      # Note: Chrome Web Store upload moved to separate workflow
+      # Run 'Upload to Chrome Web Store' workflow manually if upload fails
+      # or is in pending review state
 
       - name: Release complete
         run: |
           NEW_VERSION="${{ steps.new_version.outputs.NEW_VERSION }}"
           echo "✓ Release v${NEW_VERSION} published successfully!"
-          echo "✓ Extension uploaded to Chrome Web Store!"
-          echo "View GitHub release at: https://github.com/${{ github.repository }}/releases/tag/v${NEW_VERSION}"
+          echo "📦 GitHub release: https://github.com/${{ github.repository }}/releases/tag/v${NEW_VERSION}"
+          echo ""
+          echo "📤 Chrome Web Store upload will run automatically via separate workflow"
+          echo "   Or manually trigger: Actions → Upload to Chrome Web Store → Run workflow"

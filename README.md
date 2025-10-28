@@ -74,12 +74,15 @@ make clean    # Remove build artifacts
 
 ### Releasing
 
-Push to `main` branch - GitHub Actions automatically:
+**Push to `main` branch** - GitHub Actions automatically:
 - Increments version
-- Creates release
-- Uploads to Chrome Web Store
+- Creates GitHub release with artifact
 
-See [CHROME_WEB_STORE_SETUP.md](./CHROME_WEB_STORE_SETUP.md) for detailed publishing setup.
+**Chrome Web Store upload** runs automatically after release, or manually trigger:
+- Go to **Actions** → **Upload to Chrome Web Store** → **Run workflow**
+
+See [CHROME_WEB_STORE_SETUP.md](./CHROME_WEB_STORE_SETUP.md) for publishing setup.
+See [.github/workflows/README.md](./.github/workflows/README.md) for workflow details.
 
 ### Contributing
 
