@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Thoth",
-  "version": "1.0.11",
+  "version": "1.0.12",
   "description": "The AI scribe that records what matters. Highlight text or images, use AI to summarize, and create GitHub issues automatically.",
   "permissions": [
     "contextMenus",
