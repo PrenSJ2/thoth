@@ -513,7 +513,7 @@ If you are unsure which template to use or if none seem appropriate, respond wit
       const parsed = JSON.parse(jsonString);
       const templateIndex = parsed.template_index;
 
-        console.log(`AI template selection: index=${templateIndex}, reasoning="${parsed.reasoning}"`);
+      console.log(`AI template selection: index=${templateIndex}, reasoning="${parsed.reasoning}"`);
 
       if (templateIndex === 0) {
         console.log('AI chose blank issue (no template)');
