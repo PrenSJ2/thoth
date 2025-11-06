@@ -55,24 +55,27 @@ done
 echo ""
 echo -e "${BLUE}Creating Firefox package with manifest-firefox.json...${NC}"
 
-# Create the zip file with Firefox manifest
-# First add manifest as manifest.json
-cp manifest-firefox.json "$OUTPUT_DIR/manifest.json"
+# Create a temporary directory for Firefox files
+TEMP_DIR="${OUTPUT_DIR}/firefox-temp"
+mkdir -p "$TEMP_DIR"
 
-# Add all other files
+# Copy manifest as manifest.json
+cp manifest-firefox.json "$TEMP_DIR/manifest.json"
+
+# Copy all other files
 for file in "${FILES[@]}"; do
     if [ -f "$file" ]; then
-        cp "$file" "$OUTPUT_DIR/"
+        cp "$file" "$TEMP_DIR/"
     fi
 done
 
-# Create zip from dist directory
-cd "$OUTPUT_DIR"
-zip -q -r "../${OUTPUT_FILE}" . -x "*.thoth-images/*" -x ".thoth-images/*"
-cd ..
+# Create zip from temp directory
+cd "$TEMP_DIR"
+zip -q -r "../../${OUTPUT_FILE}" . -x "*.thoth-images/*" -x ".thoth-images/*"
+cd ../..
 
-# Clean up temporary files in dist
-rm -rf "$OUTPUT_DIR"/*.js "$OUTPUT_DIR"/*.html "$OUTPUT_DIR"/*.png "$OUTPUT_DIR"/*.md "$OUTPUT_DIR"/manifest.json "$OUTPUT_DIR"/LICENSE
+# Clean up temporary directory
+rm -rf "$TEMP_DIR"
 
 # Get file size
 SIZE=$(du -h "$OUTPUT_FILE" | cut -f1)
