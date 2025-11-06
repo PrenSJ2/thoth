@@ -496,8 +496,8 @@ If you are unsure which template to use or if none seem appropriate, respond wit
     });
 
     if (!response.ok) {
-      console.error('OpenAI API error in template selection, using first template');
-      return templates[0].content;
+      console.error('OpenAI API error in template selection, using first template or blank');
+      return templates.length > 0 ? templates[0].content : null;
     }
 
     const data = await response.json();
@@ -523,18 +523,18 @@ If you are unsure which template to use or if none seem appropriate, respond wit
         console.log(`AI selected template: ${selectedTemplate.name}`);
         return selectedTemplate.content;
       } else {
-        console.log('Invalid template index from AI, using first template');
-        return templates[0].content;
+        console.log('Invalid template index from AI, using first template or blank');
+        return templates.length > 0 ? templates[0].content : null;
       }
     } catch (parseError) {
       console.error('Failed to parse AI template selection response:', parseError);
-      console.log('Falling back to first template');
-      return templates[0].content;
+      console.log('Falling back to first template or blank');
+      return templates.length > 0 ? templates[0].content : null;
     }
   } catch (error) {
     console.error('Error in template selection:', error);
-    console.log('Falling back to first template');
-    return templates[0].content;
+    console.log('Falling back to first template or blank');
+    return templates.length > 0 ? templates[0].content : null;
   }
 }
 
