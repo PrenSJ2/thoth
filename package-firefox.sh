@@ -71,7 +71,7 @@ done
 
 # Create zip from temp directory
 cd "$TEMP_DIR"
-zip -q -r "../../${OUTPUT_FILE}" . -x "*.thoth-images/*" -x ".thoth-images/*"
+zip -q -r "../../${OUTPUT_FILE}" . -x ".thoth-images/*"
 cd ../..
 
 # Clean up temporary directory
