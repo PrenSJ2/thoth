@@ -2,10 +2,8 @@
 // Handles context menus, API calls, and issue creation
 // Compatible with both Chrome (Manifest V3) and Firefox (Manifest V2)
 
-// Browser compatibility: Handle differences between Chrome and Firefox
-const browserAPI = typeof browser !== 'undefined' ? browser : chrome;
-
 // Handle action vs browserAction API differences (Manifest V3 vs V2)
+// Firefox Manifest V2 uses browserAction, Chrome Manifest V3 uses action
 const actionAPI = chrome.action || chrome.browserAction;
 
 const PARENT_MENU_ID = 'thoth-parent';

@@ -27,17 +27,16 @@ Key differences:
 
 ### Code Compatibility
 
-All JavaScript files (`background.js`, `content.js`, `popup.js`) include a browser compatibility layer:
+All JavaScript files (`background.js`, `content.js`, `popup.js`) are compatible with both browsers out of the box because:
 
-```javascript
-// Browser compatibility: Handle differences between Chrome and Firefox
-const browserAPI = typeof browser !== 'undefined' ? browser : chrome;
+1. **Firefox supports the `chrome` namespace**: Firefox's WebExtensions API implements the `chrome.*` APIs as aliases to `browser.*`, so code using `chrome.storage`, `chrome.tabs`, etc. works in both browsers.
 
-// Handle action vs browserAction API differences (Manifest V3 vs V2)
-const actionAPI = chrome.action || chrome.browserAction;
-```
-
-This ensures the code works seamlessly in both browsers.
+2. **Action API compatibility**: The only API difference is handled via a compatibility constant:
+   ```javascript
+   // Handle action vs browserAction API differences (Manifest V3 vs V2)
+   const actionAPI = chrome.action || chrome.browserAction;
+   ```
+   This ensures badge operations work in both browsers without needing separate code paths.
 
 ## Building
 

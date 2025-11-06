@@ -2,9 +2,6 @@
 // Manages settings, API key configuration, and repository selection
 // Compatible with both Chrome (Manifest V3) and Firefox (Manifest V2)
 
-// Browser compatibility: Handle differences between Chrome and Firefox
-const browserAPI = typeof browser !== 'undefined' ? browser : chrome;
-
 // DOM elements
 const openaiKeyInput = document.getElementById('openai-key');
 const githubKeyInput = document.getElementById('github-key');
