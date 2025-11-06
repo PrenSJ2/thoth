@@ -73,30 +73,34 @@ jobs:
           echo "NEW_VERSION=$NEW_VERSION" >> $GITHUB_OUTPUT
           echo "New version will be: $NEW_VERSION"
 
-      - name: Update manifest.json with new version
+      - name: Update manifest files with new version
         run: |
           NEW_VERSION="${{ steps.new_version.outputs.NEW_VERSION }}"
-          # Update version in manifest.json (Linux sed syntax)
+          # Update version in both Chrome and Firefox manifests
           sed -i "s/\"version\": \"[^\"]*\"/\"version\": \"$NEW_VERSION\"/" manifest.json
+          sed -i "s/\"version\": \"[^\"]*\"/\"version\": \"$NEW_VERSION\"/" manifest-firefox.json
           echo "✓ Updated manifest.json to version $NEW_VERSION"
+          echo "✓ Updated manifest-firefox.json to version $NEW_VERSION"
           cat manifest.json | grep version
+          cat manifest-firefox.json | grep version
 
       - name: Commit version bump
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add manifest.json
+          git add manifest.json manifest-firefox.json
           git commit -m "Bump version to ${{ steps.new_version.outputs.NEW_VERSION }}" || echo "No changes to commit"
           git push origin main || echo "Nothing to push"
 
-      - name: Package extension
+      - name: Package extensions
         run: |
           NEW_VERSION="${{ steps.new_version.outputs.NEW_VERSION }}"
 
           # Create dist directory
           mkdir -p dist
 
-          # Package the extension (Chrome Web Store only needs runtime files + legal docs)
+          # Package Chrome extension (Manifest V3)
+          echo "📦 Packaging Chrome extension..."
           zip -q "dist/thoth-extension-v${NEW_VERSION}.zip" \
             manifest.json \
             background.js \
@@ -107,10 +111,30 @@ jobs:
             PRIVACY_POLICY.md \
             TERMS_OF_SERVICE.md \
             LICENSE \
-            -x "*.thoth-images/*" -x ".thoth-images/*"
+            -x ".thoth-images/*"
+
+          # Package Firefox extension (Manifest V2)
+          echo "📦 Packaging Firefox extension..."
+          TEMP_DIR="dist/firefox-temp"
+          mkdir -p "$TEMP_DIR"
+          
+          # Copy Firefox manifest as manifest.json
+          cp manifest-firefox.json "$TEMP_DIR/manifest.json"
+          
+          # Copy all other files
+          cp background.js content.js popup.html popup.js icon.png \
+             PRIVACY_POLICY.md TERMS_OF_SERVICE.md LICENSE "$TEMP_DIR/"
+          
+          # Create Firefox zip
+          cd "$TEMP_DIR"
+          zip -q -r "../../dist/thoth-extension-firefox-v${NEW_VERSION}.zip" . -x ".thoth-images/*"
+          cd ../..
+          
+          # Clean up temp directory
+          rm -rf "$TEMP_DIR"
 
           # Show package info
-          echo "Package created:"
+          echo "✓ Packages created:"
           ls -lh dist/
 
       - name: Generate changelog
@@ -141,23 +165,33 @@ jobs:
           tag_name: v${{ steps.new_version.outputs.NEW_VERSION }}
           name: Thoth v${{ steps.new_version.outputs.NEW_VERSION }}
           body: |
-            ## 📜 Thoth Chrome Extension v${{ steps.new_version.outputs.NEW_VERSION }}
+            ## 📜 Thoth Extension v${{ steps.new_version.outputs.NEW_VERSION }}
 
             **The AI scribe that records what matters.**
 
+            Now available for both **Chrome** and **Firefox**! 🎉
+
             ### 📥 Installation
 
+            #### Chrome / Edge
             1. Download `thoth-extension-v${{ steps.new_version.outputs.NEW_VERSION }}.zip` below
             2. Extract the zip file
-            3. Open Chrome and go to `chrome://extensions/`
+            3. Open Chrome and go to `chrome://extensions/` (or `edge://extensions/` for Edge)
             4. Enable "Developer mode"
             5. Click "Load unpacked" and select the extracted folder
             6. Configure your API keys in the extension popup
 
+            #### Firefox
+            1. Download `thoth-extension-firefox-v${{ steps.new_version.outputs.NEW_VERSION }}.zip` below
+            2. Open Firefox and go to `about:debugging#/runtime/this-firefox`
+            3. Click "Load Temporary Add-on"
+            4. Select the downloaded zip file
+            5. Configure your API keys in the extension popup
+
             ### 📋 Prerequisites
 
             - OpenAI API Key ([Get one here](https://platform.openai.com/api-keys))
-            - GitHub Personal Access Token with `repo` and `read:org` scopes ([Generate here](https://github.com/settings/tokens/new?description=Thoth%20Chrome%20Extension&scopes=repo,read:org))
+            - GitHub Personal Access Token with `repo` and `read:org` scopes ([Generate here](https://github.com/settings/tokens/new?description=Thoth%20Extension&scopes=repo,read:org))
 
             ### 📝 Changes
 
@@ -168,6 +202,7 @@ jobs:
             **Full documentation:** [README.md](https://github.com/${{ github.repository }}/blob/main/README.md)
           files: |
             dist/thoth-extension-v${{ steps.new_version.outputs.NEW_VERSION }}.zip
+            dist/thoth-extension-firefox-v${{ steps.new_version.outputs.NEW_VERSION }}.zip
           draft: false
           prerelease: false
         env:
