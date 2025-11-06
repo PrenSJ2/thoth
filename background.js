@@ -1,5 +1,12 @@
-// Thoth Background Service Worker
+// Thoth Background Service Worker / Script
 // Handles context menus, API calls, and issue creation
+// Compatible with both Chrome (Manifest V3) and Firefox (Manifest V2)
+
+// Browser compatibility: Handle differences between Chrome and Firefox
+const browserAPI = typeof browser !== 'undefined' ? browser : chrome;
+
+// Handle action vs browserAction API differences (Manifest V3 vs V2)
+const actionAPI = chrome.action || chrome.browserAction;
 
 const PARENT_MENU_ID = 'thoth-parent';
 let cachedRepos = [];
@@ -287,8 +294,8 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
   const content = { text: textContent, image: imageUrl };
 
   // Show loading badge
-  chrome.action.setBadgeText({ text: '...' });
-  chrome.action.setBadgeBackgroundColor({ color: '#16a085' });
+  actionAPI.setBadgeText({ text: '...' });
+  actionAPI.setBadgeBackgroundColor({ color: '#16a085' });
 
   // Show on-page loading indicator
   showPageLoader(tab.id, 'Creating issue...');
@@ -315,7 +322,7 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
     chrome.tabs.create({ url: issueUrl });
 
     // Clear loading badge and page loader
-    chrome.action.setBadgeText({ text: '' });
+    actionAPI.setBadgeText({ text: '' });
     hidePageLoader(tab.id);
 
     // Show success notification
@@ -324,7 +331,7 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
     console.error('Error creating issue:', error);
 
     // Clear loading badge and page loader
-    chrome.action.setBadgeText({ text: '' });
+    actionAPI.setBadgeText({ text: '' });
     hidePageLoader(tab.id);
 
     showNotification('Error', error.message || 'Failed to create issue');

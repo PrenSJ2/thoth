@@ -1,5 +1,9 @@
 // Thoth Content Script
 // Captures text selections and image information from web pages
+// Compatible with both Chrome (Manifest V3) and Firefox (Manifest V2)
+
+// Browser compatibility: Handle differences between Chrome and Firefox
+const browserAPI = typeof browser !== 'undefined' ? browser : chrome;
 
 // Track last right-clicked element and position
 let lastRightClickedElement = null;
