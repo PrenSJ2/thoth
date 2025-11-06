@@ -12,7 +12,8 @@ This document explains how Thoth supports both Chrome and Firefox browsers.
 Key differences:
 1. **Background Scripts**:
    - Chrome V3: `"service_worker": "background.js"`
-   - Firefox V2: `"scripts": ["background.js"]`
+   - Firefox V2: `"scripts": ["background.js"], "persistent": true`
+   - Note: `persistent: true` ensures the background script stays loaded, similar to Chrome's service worker behavior. Without it, Firefox would use an event page that unloads when idle.
 
 2. **Browser Action**:
    - Chrome V3: `"action": {...}`
