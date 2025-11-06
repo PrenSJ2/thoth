@@ -444,18 +444,18 @@ async function selectAppropriateTemplate(content, contentType, apiKey, templates
   // Use AI to select the most appropriate template
   let contentDescription = '';
   if (contentType === 'text') {
-    const textPreview = content.text ? content.text.substring(0, 500) : '';
+    const textPreview = (content.text && typeof content.text === 'string') ? content.text.substring(0, 500) : '';
     contentDescription = `Text content: "${textPreview}..."`;
   } else if (contentType === 'image') {
     contentDescription = 'An image';
   } else if (contentType === 'text-and-image') {
-    const textPreview = content.text ? content.text.substring(0, 500) : '';
+    const textPreview = (content.text && typeof content.text === 'string') ? content.text.substring(0, 500) : '';
     contentDescription = `Text content: "${textPreview}..." and an image`;
   }
 
   // Build template descriptions for AI
   const templateDescriptions = templates.map((t, idx) => {
-    const contentPreview = t.content ? t.content.substring(0, 200) : '';
+    const contentPreview = (t.content && typeof t.content === 'string') ? t.content.substring(0, 200) : '';
     return `${idx + 1}. ${t.name} (${t.path})\n   Preview: ${contentPreview}...`;
   }).join('\n\n');
 
