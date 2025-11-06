@@ -297,11 +297,14 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
   showNotification('Processing', `Creating issue in ${selectedRepo.full_name}...`);
 
   try {
-    // Try to fetch issue template from repository
-    const template = await fetchIssueTemplate(selectedRepo.full_name, githubKey);
+    // Fetch all available issue templates from repository
+    const templates = await fetchAllIssueTemplates(selectedRepo.full_name, githubKey);
 
-    // Generate issue content with OpenAI
-    const { title, body } = await generateIssueContent(content, contentType, openaiKey, info.pageUrl, template);
+    // Select the most appropriate template based on content
+    const selectedTemplate = await selectAppropriateTemplate(content, contentType, openaiKey, templates);
+
+    // Generate issue content with OpenAI using the selected template
+    const { title, body } = await generateIssueContent(content, contentType, openaiKey, info.pageUrl, selectedTemplate);
 
     // Replace image placeholder with actual image
     const finalBody = imageUrl ? body.replace(/\[IMAGE_PLACEHOLDER\]/g, `![Image](${imageUrl})`) : body;
@@ -331,29 +334,23 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
   }
 });
 
-// Fetch issue template from repository
-async function fetchIssueTemplate(repoFullName, githubToken) {
+// Fetch all available issue templates from repository
+async function fetchAllIssueTemplates(repoFullName, githubToken) {
   const headers = {
     'Authorization': `Bearer ${githubToken}`,
     'Accept': 'application/vnd.github.v3+json'
   };
 
-  // Try common template locations in order
-  // Prefer Markdown templates as they're easier for AI to use
-  // YAML forms are designed for interactive web forms, not AI templates
-  const templatePaths = [
+  const templates = [];
+
+  // Try common single-template locations
+  const singleTemplatePaths = [
     '.github/ISSUE_TEMPLATE.md',
-    '.github/ISSUE_TEMPLATE/bug_report.md',
-    '.github/ISSUE_TEMPLATE/feature_request.md',
     'ISSUE_TEMPLATE.md',
-    '.github/issue_template.md',
-    // Try YAML forms as fallback (will parse them for field info)
-    '.github/ISSUE_TEMPLATE/bug_report.yml',
-    '.github/ISSUE_TEMPLATE/feature_request.yml',
-    '.github/ISSUE_TEMPLATE.yml'
+    '.github/issue_template.md'
   ];
 
-  for (const path of templatePaths) {
+  for (const path of singleTemplatePaths) {
     try {
       const response = await fetch(
         `https://api.github.com/repos/${repoFullName}/contents/${path}`,
@@ -362,19 +359,22 @@ async function fetchIssueTemplate(repoFullName, githubToken) {
 
       if (response.ok) {
         const data = await response.json();
-        // Decode base64 content (remove newlines first as GitHub API includes them for readability)
-        const template = atob(data.content.replace(/\n/g, ''));
-        console.log(`✓ Found issue template at ${path}`);
-        return template;
+        const content = atob(data.content.replace(/\n/g, ''));
+        templates.push({
+          name: 'default',
+          path: path,
+          content: content
+        });
+        console.log(`✓ Found single issue template at ${path}`);
+        return templates; // Return early if single template found
       }
     } catch (error) {
       // Continue to next template location
-      console.log(`✗ Template not found at ${path}:`, error.message || 'Not found');
       continue;
     }
   }
 
-  // Try to list and use the first file in .github/ISSUE_TEMPLATE/ directory
+  // Try to list all files in .github/ISSUE_TEMPLATE/ directory
   try {
     const response = await fetch(
       `https://api.github.com/repos/${repoFullName}/contents/.github/ISSUE_TEMPLATE`,
@@ -392,25 +392,29 @@ async function fetchIssueTemplate(repoFullName, githubToken) {
         file.name !== 'config.yml'
       );
 
-      if (templateFiles.length > 0) {
-        // Prefer Markdown templates over YAML (sort .md before .yml/.yaml)
-        templateFiles.sort((a, b) => {
-          const aIsMd = a.name.endsWith('.md');
-          const bIsMd = b.name.endsWith('.md');
-          if (aIsMd && !bIsMd) return -1;
-          if (!aIsMd && bIsMd) return 1;
-          return a.name.localeCompare(b.name); // Alphabetical within same type
-        });
+      // Fetch content for each template file
+      for (const file of templateFiles) {
+        try {
+          const templateResponse = await fetch(file.url, { headers });
+          if (templateResponse.ok) {
+            const templateData = await templateResponse.json();
+            const content = atob(templateData.content.replace(/\n/g, ''));
+            
+            // Extract a human-readable name from filename
+            const name = file.name
+              .replace(/\.(md|yml|yaml)$/, '')
+              .replace(/[_-]/g, ' ')
+              .replace(/\b\w/g, c => c.toUpperCase());
 
-        const firstTemplate = templateFiles[0];
-        console.log(`Using template file: ${firstTemplate.name} (${templateFiles.length} total templates found)`);
-
-        const templateResponse = await fetch(firstTemplate.url, { headers });
-        if (templateResponse.ok) {
-          const templateData = await templateResponse.json();
-          const template = atob(templateData.content.replace(/\n/g, ''));
-          console.log(`✓ Found issue template: ${firstTemplate.path}`);
-          return template;
+            templates.push({
+              name: name,
+              path: file.path,
+              content: content
+            });
+            console.log(`✓ Found issue template: ${file.name} (${name})`);
+          }
+        } catch (error) {
+          console.log(`Could not fetch template ${file.name}:`, error.message);
         }
       }
     }
@@ -418,9 +422,120 @@ async function fetchIssueTemplate(repoFullName, githubToken) {
     console.log('Could not list .github/ISSUE_TEMPLATE/ directory:', error.message);
   }
 
-  // No template found
-  console.log('No issue template found in repository');
-  return null;
+  // Return all found templates (may be empty array)
+  console.log(`Total templates found: ${templates.length}`);
+  return templates;
+}
+
+// Select the most appropriate template based on content using AI
+async function selectAppropriateTemplate(content, contentType, apiKey, templates) {
+  // If no templates available, return null for blank issue
+  if (!templates || templates.length === 0) {
+    console.log('No templates available, will use blank issue');
+    return null;
+  }
+
+  // If only one template, use it
+  if (templates.length === 1) {
+    console.log(`Using single available template: ${templates[0].name}`);
+    return templates[0].content;
+  }
+
+  // Use AI to select the most appropriate template
+  let contentDescription = '';
+  if (contentType === 'text') {
+    const textPreview = (content.text && typeof content.text === 'string') ? content.text.substring(0, 500) : '';
+    contentDescription = `Text content: "${textPreview}..."`;
+  } else if (contentType === 'image') {
+    contentDescription = 'An image';
+  } else if (contentType === 'text-and-image') {
+    const textPreview = (content.text && typeof content.text === 'string') ? content.text.substring(0, 500) : '';
+    contentDescription = `Text content: "${textPreview}..." and an image`;
+  }
+
+  // Build template descriptions for AI
+  const templateDescriptions = templates.map((t, idx) => {
+    const contentPreview = (t.content && typeof t.content === 'string') ? t.content.substring(0, 200) : '';
+    return `${idx + 1}. ${t.name} (${t.path})\n   Preview: ${contentPreview}...`;
+  }).join('\n\n');
+
+  const prompt = `You are an AI assistant helping to select the most appropriate GitHub issue template.
+
+User has selected the following content to create an issue:
+${contentDescription}
+
+Available issue templates:
+${templateDescriptions}
+
+Based on the content, which template is most appropriate? Analyze the content and template purposes carefully.
+
+Respond with ONLY a JSON object in this exact format (no additional text):
+{
+  "template_index": <number from 1 to ${templates.length}, or 0 if unsure or none fit well>,
+  "reasoning": "<brief explanation>"
+}
+
+If you are unsure which template to use or if none seem appropriate, respond with template_index: 0 to use a blank issue.`;
+
+  try {
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${apiKey}`
+      },
+      body: JSON.stringify({
+        model: 'gpt-4o-mini',
+        messages: [
+          { role: 'system', content: 'You are a helpful assistant that selects appropriate GitHub issue templates.' },
+          { role: 'user', content: prompt }
+        ],
+        temperature: 0.3,
+        max_tokens: 200
+      })
+    });
+
+    if (!response.ok) {
+      console.error('OpenAI API error in template selection, using first template or blank');
+      return templates.length > 0 ? templates[0].content : null;
+    }
+
+    const data = await response.json();
+    const aiResponse = data.choices[0].message.content.trim();
+
+    // Parse JSON response
+    try {
+      let jsonString = aiResponse.trim();
+      jsonString = jsonString.replace(/^```[a-zA-Z]*\s*/i, '');
+      jsonString = jsonString.replace(/\s*```\s*$/i, '');
+      jsonString = jsonString.trim();
+
+      const parsed = JSON.parse(jsonString);
+      const templateIndex = parsed.template_index;
+
+      console.log(`AI template selection: index=${templateIndex}, reasoning="${parsed.reasoning}"`);
+
+      if (templateIndex === 0) {
+        console.log('AI chose blank issue (no template)');
+        return null;
+      } else if (templateIndex > 0 && templateIndex <= templates.length) {
+        const selectedTemplate = templates[templateIndex - 1];
+        console.log(`AI selected template: ${selectedTemplate.name}`);
+        return selectedTemplate.content;
+      } else {
+        console.log('Invalid template index from AI, using first template or blank');
+        return templates.length > 0 ? templates[0].content : null;
+      }
+    } catch (parseError) {
+      console.error('Failed to parse AI template selection response:', parseError);
+      console.log('Falling back to first template or blank');
+      return templates.length > 0 ? templates[0].content : null;
+    }
+  } catch (error) {
+    console.error('Error in template selection:', error);
+    console.log('Falling back to first template or blank');
+    return templates.length > 0 ? templates[0].content : null;
+  }
 }
 
 // Generate issue title and body using OpenAI
@@ -681,12 +796,15 @@ async function handlePopupIssueCreation(data) {
   try {
     console.log('Creating issue from popup for repo:', repoFullName);
 
-    // Fetch issue template
-    const template = await fetchIssueTemplate(repoFullName, githubKey);
+    // Fetch all available issue templates
+    const templates = await fetchAllIssueTemplates(repoFullName, githubKey);
 
-    // Generate issue content with OpenAI
+    // Select the most appropriate template based on content
     const content = { text: text, image: '' };
-    const { title, body } = await generateIssueContent(content, 'text', openaiKey, pageUrl, template);
+    const selectedTemplate = await selectAppropriateTemplate(content, 'text', openaiKey, templates);
+
+    // Generate issue content with OpenAI using the selected template
+    const { title, body } = await generateIssueContent(content, 'text', openaiKey, pageUrl, selectedTemplate);
 
     // Create GitHub issue
     const issueUrl = await createGitHubIssue(repoFullName, title, body, githubKey);
