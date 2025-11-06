@@ -444,17 +444,20 @@ async function selectAppropriateTemplate(content, contentType, apiKey, templates
   // Use AI to select the most appropriate template
   let contentDescription = '';
   if (contentType === 'text') {
-    contentDescription = `Text content: "${content.text.substring(0, 500)}..."`;
+    const textPreview = content.text ? content.text.substring(0, 500) : '';
+    contentDescription = `Text content: "${textPreview}..."`;
   } else if (contentType === 'image') {
     contentDescription = 'An image';
   } else if (contentType === 'text-and-image') {
-    contentDescription = `Text content: "${content.text.substring(0, 500)}..." and an image`;
+    const textPreview = content.text ? content.text.substring(0, 500) : '';
+    contentDescription = `Text content: "${textPreview}..." and an image`;
   }
 
   // Build template descriptions for AI
-  const templateDescriptions = templates.map((t, idx) => 
-    `${idx + 1}. ${t.name} (${t.path})\n   Preview: ${t.content.substring(0, 200)}...`
-  ).join('\n\n');
+  const templateDescriptions = templates.map((t, idx) => {
+    const contentPreview = t.content ? t.content.substring(0, 200) : '';
+    return `${idx + 1}. ${t.name} (${t.path})\n   Preview: ${contentPreview}...`;
+  }).join('\n\n');
 
   const prompt = `You are an AI assistant helping to select the most appropriate GitHub issue template.
 
@@ -501,25 +504,31 @@ If you are unsure which template to use or if none seem appropriate, respond wit
     const aiResponse = data.choices[0].message.content.trim();
 
     // Parse JSON response
-    let jsonString = aiResponse.trim();
-    jsonString = jsonString.replace(/^```[a-zA-Z]*\s*/i, '');
-    jsonString = jsonString.replace(/\s*```\s*$/i, '');
-    jsonString = jsonString.trim();
+    try {
+      let jsonString = aiResponse.trim();
+      jsonString = jsonString.replace(/^```[a-zA-Z]*\s*/i, '');
+      jsonString = jsonString.replace(/\s*```\s*$/i, '');
+      jsonString = jsonString.trim();
 
-    const parsed = JSON.parse(jsonString);
-    const templateIndex = parsed.template_index;
+      const parsed = JSON.parse(jsonString);
+      const templateIndex = parsed.template_index;
 
-    console.log(`AI template selection: index=${templateIndex}, reasoning="${parsed.reasoning}"`);
+        console.log(`AI template selection: index=${templateIndex}, reasoning="${parsed.reasoning}"`);
 
-    if (templateIndex === 0) {
-      console.log('AI chose blank issue (no template)');
-      return null;
-    } else if (templateIndex > 0 && templateIndex <= templates.length) {
-      const selectedTemplate = templates[templateIndex - 1];
-      console.log(`AI selected template: ${selectedTemplate.name}`);
-      return selectedTemplate.content;
-    } else {
-      console.log('Invalid template index from AI, using first template');
+      if (templateIndex === 0) {
+        console.log('AI chose blank issue (no template)');
+        return null;
+      } else if (templateIndex > 0 && templateIndex <= templates.length) {
+        const selectedTemplate = templates[templateIndex - 1];
+        console.log(`AI selected template: ${selectedTemplate.name}`);
+        return selectedTemplate.content;
+      } else {
+        console.log('Invalid template index from AI, using first template');
+        return templates[0].content;
+      }
+    } catch (parseError) {
+      console.error('Failed to parse AI template selection response:', parseError);
+      console.log('Falling back to first template');
       return templates[0].content;
     }
   } catch (error) {
