@@ -8,6 +8,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Firefox support**: Extension now works on Firefox with a dedicated Firefox manifest (Manifest V2)
+- Cross-browser compatibility layer for Chrome and Firefox
+- Separate build commands for Chrome and Firefox packages (`make package-chrome`, `make package-firefox`)
+- Firefox installation instructions in README
+- `manifest-firefox.json` for Firefox-specific configuration
 - GitHub Actions workflow for automated releases on push to main
 - **Automated Chrome Web Store uploads**: Extension automatically uploads to Chrome Web Store on every release
 - Service account authentication for Chrome Web Store API

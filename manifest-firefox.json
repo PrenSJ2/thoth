@@ -1,0 +1,39 @@
+{
+  "manifest_version": 2,
+  "name": "Thoth",
+  "version": "1.0.13",
+  "description": "The AI scribe that records what matters. Highlight text or images, use AI to summarize, and create GitHub issues automatically.",
+  "permissions": [
+    "contextMenus",
+    "storage",
+    "activeTab",
+    "notifications",
+    "clipboardRead",
+    "https://api.openai.com/*",
+    "https://api.github.com/*",
+    "<all_urls>"
+  ],
+  "background": {
+    "scripts": ["background.js"],
+    "persistent": true
+  },
+  "browser_action": {
+    "default_popup": "popup.html",
+    "default_icon": "icon.png"
+  },
+  "icons": {
+    "128": "icon.png"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"]
+    }
+  ],
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "thoth@ancientbots.com",
+      "strict_min_version": "109.0"
+    }
+  }
+}

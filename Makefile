@@ -1,10 +1,12 @@
-.PHONY: package clean install help
+.PHONY: package clean install help package-firefox package-chrome
 
 # Default target
 help:
-	@echo "Thoth Chrome Extension - Available Commands:"
+	@echo "Thoth Extension - Available Commands:"
 	@echo ""
-	@echo "  make package         - Package the extension locally for testing"
+	@echo "  make package         - Package both Chrome and Firefox extensions"
+	@echo "  make package-chrome  - Package the Chrome extension only"
+	@echo "  make package-firefox - Package the Firefox extension only"
 	@echo "  make clean           - Remove build artifacts and old packages"
 	@echo "  make help            - Show this help message"
 	@echo ""
@@ -17,9 +19,16 @@ help:
 	@echo "For major/minor version bumps, manually update manifest.json before pushing."
 	@echo ""
 
-# Package the extension locally
-package: install
+# Package both Chrome and Firefox extensions
+package: install package-chrome package-firefox
+
+# Package the Chrome extension locally
+package-chrome: install
 	@./package.sh
+
+# Package the Firefox extension locally
+package-firefox: install
+	@./package-firefox.sh
 
 # Clean build artifacts
 clean:
@@ -28,6 +37,7 @@ clean:
 	@rm -f thoth-extension.zip
 	@echo "✓ Clean complete"
 
-# Make package script executable
+# Make package scripts executable
 install:
 	@chmod +x package.sh
+	@chmod +x package-firefox.sh

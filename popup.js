@@ -1,5 +1,6 @@
 // Thoth Popup Script
 // Manages settings, API key configuration, and repository selection
+// Compatible with both Chrome (Manifest V3) and Firefox (Manifest V2)
 
 // DOM elements
 const openaiKeyInput = document.getElementById('openai-key');

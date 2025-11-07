@@ -2,7 +2,7 @@
 
 **The AI scribe that records what matters.**
 
-Thoth is a Chrome extension that captures text and images from any webpage and automatically creates GitHub issues using AI.
+Thoth is a browser extension that captures text and images from any webpage and automatically creates GitHub issues using AI. Works on both **Chrome** and **Firefox**!
 
 ## ✨ Features
 
@@ -12,15 +12,23 @@ Thoth is a Chrome extension that captures text and images from any webpage and a
 - 🏢 **Multi-Repository**: Works with personal and organization repositories
 - 🖼️ **Image Support**: Captures and embeds images in issues
 - ⚡ **Quick Access**: Right-click context menu or popup for blocked sites
+- 🦊 **Cross-Browser**: Works on Chrome, Edge, and Firefox
 
 ## 🚀 Quick Start
 
 ### Installation
 
+#### Chrome / Edge
 1. Clone this repository or [download from Chrome Web Store](#)
-2. Open `chrome://extensions/` in Chrome
+2. Open `chrome://extensions/` (or `edge://extensions/` for Edge)
 3. Enable **Developer mode**
 4. Click **Load unpacked** and select the `thoth` folder
+
+#### Firefox
+1. Clone this repository or [download from Firefox Add-ons](#)
+2. Open `about:debugging#/runtime/this-firefox`
+3. Click **Load Temporary Add-on**
+4. Select the `manifest-firefox.json` file from the `thoth` folder
 
 ### Setup
 
@@ -58,7 +66,7 @@ For detailed troubleshooting, check the browser console (F12).
 
 ## 🔒 Privacy & Security
 
-- API keys stored securely in Chrome's encrypted sync storage
+- API keys stored securely in browser's encrypted sync storage
 - No data collection - only communicates with OpenAI and GitHub APIs
 - All processing happens locally in your browser
 - See [PRIVACY_POLICY.md](./PRIVACY_POLICY.md) and [TERMS_OF_SERVICE.md](./TERMS_OF_SERVICE.md)
@@ -68,15 +76,27 @@ For detailed troubleshooting, check the browser console (F12).
 ### Local Testing
 
 ```bash
-make package  # Creates dist/thoth-extension-v{version}.zip
-make clean    # Remove build artifacts
+make package            # Creates packages for both Chrome and Firefox
+make package-chrome     # Creates dist/thoth-extension-v{version}.zip for Chrome
+make package-firefox    # Creates dist/thoth-extension-firefox-v{version}.zip for Firefox
+make clean              # Remove build artifacts
 ```
+
+**Testing in Chrome:**
+1. Open `chrome://extensions/`
+2. Enable Developer mode
+3. Click "Load unpacked" and select the repository folder
+
+**Testing in Firefox:**
+1. Open `about:debugging#/runtime/this-firefox`
+2. Click "Load Temporary Add-on"
+3. Select `manifest-firefox.json` from the repository folder
 
 ### Releasing
 
 **Push to `main` branch** - GitHub Actions automatically:
 - Increments version
-- Creates GitHub release with artifact
+- Creates GitHub release with artifacts for both browsers
 
 **Chrome Web Store upload** runs automatically after release, or manually trigger:
 - Go to **Actions** → **Upload to Chrome Web Store** → **Run workflow**
@@ -93,8 +113,9 @@ See [.github/workflows/README.md](./.github/workflows/README.md) for workflow de
 
 ## 📁 Key Files
 
-- `manifest.json` - Extension configuration
-- `background.js` - Service worker (API calls, issue creation)
+- `manifest.json` - Chrome extension configuration (Manifest V3)
+- `manifest-firefox.json` - Firefox extension configuration (Manifest V2)
+- `background.js` - Background script (compatible with both Chrome and Firefox)
 - `content.js` - Content script (selection capture)
 - `popup.html/js` - Extension UI
 

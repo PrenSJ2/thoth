@@ -57,7 +57,7 @@ echo ""
 echo -e "${BLUE}Creating package...${NC}"
 
 # Create the zip file, excluding .thoth-images directory
-zip -q "$OUTPUT_FILE" "${FILES[@]}" -x "*.thoth-images/*" -x ".thoth-images/*"
+zip -q "$OUTPUT_FILE" "${FILES[@]}" -x ".thoth-images/*"
 
 # Get file size
 SIZE=$(du -h "$OUTPUT_FILE" | cut -f1)
